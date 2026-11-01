@@ -13,6 +13,7 @@
             showMobileCheckout: false,
             completedTx: null,
             idempotencyKey: '',
+            selectedFilter: 'all',
 
             init() {
                 this.generateIdempotencyKey();
@@ -53,6 +54,15 @@
 
             get cartItems() {
                 return Object.values(this.cart);
+            },
+
+            get filteredProducts() {
+                if (this.selectedFilter === 'all') return this.products;
+                if (this.selectedFilter === 'qtella') return this.products.filter(p => p.name.toLowerCase().includes('qtella'));
+                if (this.selectedFilter === 'koin2') return this.products.filter(p => p.name.toLowerCase().includes('koin 2k'));
+                if (this.selectedFilter === 'koin3') return this.products.filter(p => p.name.toLowerCase().includes('koin 3k'));
+                if (this.selectedFilter === 'mojito') return this.products.filter(p => p.name.toLowerCase().includes('mojito'));
+                return this.products;
             },
 
             get totalItemsCount() {
@@ -128,10 +138,56 @@
             </span>
         </div>
 
-        <!-- Section Header -->
-        <div class="flex items-center justify-between px-1">
-            <h2 class="font-bold text-sm sm:text-base text-slate-900">Pilih Barang:</h2>
-            <span class="text-xs text-slate-500 font-medium">{{ $products->count() }} Produk Stand</span>
+        <!-- Section Header & Filter Buttons -->
+        <div class="space-y-3 px-1">
+            <div class="flex items-center justify-between">
+                <h2 class="font-bold text-sm sm:text-base text-slate-900">Pilih Barang:</h2>
+                <span class="text-xs text-slate-500 font-medium" x-text="filteredProducts.length + ' Produk'"></span>
+            </div>
+
+            <!-- Quick Filter Bar -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold">
+                <button 
+                    type="button" 
+                    @click="selectedFilter = 'all'"
+                    :class="selectedFilter === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                    Semua
+                </button>
+                <button 
+                    type="button" 
+                    @click="selectedFilter = 'qtella'"
+                    :class="selectedFilter === 'qtella' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                    Qtella (5k)
+                </button>
+                <button 
+                    type="button" 
+                    @click="selectedFilter = 'koin2'"
+                    :class="selectedFilter === 'koin2' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                    Krupuk Koin 2K
+                </button>
+                <button 
+                    type="button" 
+                    @click="selectedFilter = 'koin3'"
+                    :class="selectedFilter === 'koin3' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                    Krupuk Koin 3K
+                </button>
+                <button 
+                    type="button" 
+                    @click="selectedFilter = 'mojito'"
+                    :class="selectedFilter === 'mojito' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                    Mojito (5k)
+                </button>
+            </div>
         </div>
 
         <!-- Products Grid & Desktop Cart Layout -->
@@ -140,7 +196,7 @@
             <!-- Products Grid (Left on Desktop, Full on Mobile) -->
             <div class="lg:col-span-7 xl:col-span-8">
                 <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                    <template x-for="product in products" :key="product.id">
+                    <template x-for="product in filteredProducts" :key="product.id">
                         <div 
                             class="bg-white p-3.5 sm:p-4 rounded-2xl border transition duration-150 flex flex-col justify-between select-none relative shadow-xs"
                             :class="cart[product.id] && cart[product.id].quantity > 0 ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200 hover:border-slate-300'"

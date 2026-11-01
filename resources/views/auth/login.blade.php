@@ -1,12 +1,7 @@
 <x-layouts.guest>
     <x-slot:title>Masuk ke Sistem</x-slot:title>
 
-    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-xl space-y-6" x-data="{
-        fillCreds(login, pass) {
-            $refs.loginInput.value = login;
-            $refs.passwordInput.value = pass;
-        }
-    }">
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-xl space-y-6">
         <!-- Header -->
         <div class="text-center sm:text-left">
             <span class="inline-block text-[10px] uppercase font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md mb-2 tracking-wider">
@@ -48,11 +43,10 @@
                     type="text" 
                     id="login" 
                     name="login" 
-                    x-ref="loginInput"
                     value="{{ old('login') }}" 
                     required 
                     autofocus
-                    placeholder="misal: admin atau budi"
+                    placeholder="Masukkan username kasir atau admin"
                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
                 >
             </div>
@@ -63,7 +57,6 @@
                     type="password" 
                     id="password" 
                     name="password" 
-                    x-ref="passwordInput"
                     required 
                     placeholder="••••••••"
                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
@@ -84,29 +77,5 @@
                 Masuk ke Aplikasi
             </button>
         </form>
-
-        <!-- Quick Credentials for fast multi-device testing -->
-        <div class="pt-4 border-t border-slate-100">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Akun Pengujian Cepat:</span>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <button 
-                    type="button" 
-                    @click="fillCreds('admin', 'password123')"
-                    class="p-2.5 text-left rounded-xl border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition cursor-pointer"
-                >
-                    <div class="font-bold text-slate-900">Admin Stand</div>
-                    <div class="text-[11px] text-slate-400 font-mono">user: admin</div>
-                </button>
-                <button 
-                    type="button" 
-                    @click="fillCreds('budi', 'password123')"
-                    class="p-2.5 text-left rounded-xl border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition cursor-pointer"
-                >
-                    <div class="font-bold text-slate-900">Kasir (Budi)</div>
-                    <div class="text-[11px] text-slate-400 font-mono">user: budi</div>
-                </button>
-            </div>
-            <p class="text-[11px] text-slate-400 text-center mt-2.5">Password default: <code class="text-slate-600 font-mono font-semibold">password123</code></p>
-        </div>
     </div>
 </x-layouts.guest>
