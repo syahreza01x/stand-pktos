@@ -17,11 +17,12 @@
             // Modal states for grouped menu cards
             showQtellaModal: false,
             selectedQtellaFlavor: 'Balado',
+            qtellaPrice: 5000,
             qtellaQty: 1,
 
             showKoinModal: false,
-            selectedKoinTier: '2k',
             selectedKoinFlavor: 'Balado',
+            koinPrice: 2000,
             koinQty: 1,
 
             flavors: ['Balado', 'BBQ', 'Jagung Bakar', 'Extra Pedas'],
@@ -36,12 +37,11 @@
 
             // Helpers for finding products from the DB list
             getQtellaProduct(flavor) {
-                return this.products.find(p => p.code.startsWith('PRD-QTL-') && p.name.toLowerCase().includes(flavor.toLowerCase()));
+                return this.products.find(p => p.name.toLowerCase().includes('qtella') && p.name.toLowerCase().includes(flavor.toLowerCase()));
             },
 
-            getKoinProduct(tier, flavor) {
-                const prefix = tier === '2k' ? 'PRD-KOIN2-' : 'PRD-KOIN3-';
-                return this.products.find(p => p.code.startsWith(prefix) && p.name.toLowerCase().includes(flavor.toLowerCase()));
+            getKoinProduct(flavor) {
+                return this.products.find(p => p.name.toLowerCase().includes('koin') && p.name.toLowerCase().includes(flavor.toLowerCase()));
             },
 
             getMojitoProduct() {
@@ -51,59 +51,79 @@
             // Modal openers
             openQtellaModal() {
                 this.selectedQtellaFlavor = 'Balado';
+                this.qtellaPrice = 5000;
                 this.qtellaQty = 1;
                 this.showQtellaModal = true;
             },
 
             openKoinModal() {
-                this.selectedKoinTier = '2k';
                 this.selectedKoinFlavor = 'Balado';
+                this.koinPrice = 2000;
                 this.koinQty = 1;
                 this.showKoinModal = true;
             },
 
-            // Add Qtella with selected flavor
+            // Shortcut price setters
+            setQtellaPrice(price) {
+                this.qtellaPrice = price;
+            },
+
+            setKoinPrice(price) {
+                this.koinPrice = price;
+            },
+
+            // Add Qtella with selected flavor & custom price
             addQtellaToCart() {
                 const product = this.getQtellaProduct(this.selectedQtellaFlavor);
+                const price = Number(this.qtellaPrice) > 0 ? Number(this.qtellaPrice) : 5000;
                 if (product) {
-                    this.addToCartWithQty(product, this.qtellaQty);
+                    this.addToCartWithPriceAndQty(product, price, this.qtellaQty);
                 }
                 this.showQtellaModal = false;
             },
 
-            // Add Kerupuk Koin with selected size (2k/3k) & flavor
+            // Add Kerupuk Koin with selected flavor & custom price
             addKoinToCart() {
-                const product = this.getKoinProduct(this.selectedKoinTier, this.selectedKoinFlavor);
+                const product = this.getKoinProduct(this.selectedKoinFlavor);
+                const price = Number(this.koinPrice) > 0 ? Number(this.koinPrice) : 2000;
                 if (product) {
-                    this.addToCartWithQty(product, this.koinQty);
+                    this.addToCartWithPriceAndQty(product, price, this.koinQty);
                 }
                 this.showKoinModal = false;
             },
 
-            // Cart operations
-            addToCartWithQty(product, qty = 1) {
-                if (!this.cart[product.id]) {
-                    this.cart[product.id] = {
+            // Cart operations keyed by product_id + price
+            addToCartWithPriceAndQty(product, price, qty = 1) {
+                const key = product.id + '_' + price;
+                if (!this.cart[key]) {
+                    this.cart[key] = {
+                        key: key,
                         id: product.id,
                         name: product.name,
-                        price: parseFloat(product.price),
+                        price: parseFloat(price),
                         quantity: qty
                     };
                 } else {
-                    this.cart[product.id].quantity += qty;
+                    this.cart[key].quantity += qty;
                 }
             },
 
             addToCart(product) {
-                this.addToCartWithQty(product, 1);
+                this.addToCartWithPriceAndQty(product, parseFloat(product.price), 1);
             },
 
-            decrementQuantity(productId) {
-                if (this.cart[productId]) {
-                    this.cart[productId].quantity -= 1;
-                    if (this.cart[productId].quantity <= 0) {
-                        delete this.cart[productId];
+            decrementQuantity(key) {
+                if (this.cart[key]) {
+                    this.cart[key].quantity -= 1;
+                    if (this.cart[key].quantity <= 0) {
+                        delete this.cart[key];
                     }
+                }
+            },
+
+            incrementQuantity(key) {
+                if (this.cart[key]) {
+                    this.cart[key].quantity += 1;
                 }
             },
 
@@ -160,6 +180,7 @@
                     notes: this.notes,
                     items: this.cartItems.map(item => ({
                         product_id: item.id,
+                        custom_price: item.price,
                         quantity: item.quantity
                     }))
                 };
@@ -213,7 +234,7 @@
         <div class="flex items-center justify-between px-1">
             <div>
                 <h2 class="font-bold text-sm sm:text-base text-slate-900">Pilih Barang:</h2>
-                <p class="text-xs text-slate-500">Pilih menu, varian rasa, dan harga yang dipesan pembeli</p>
+                <p class="text-xs text-slate-500">Pilih menu, varian rasa, dan harga kustom pesanan pembeli</p>
             </div>
             <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
                 3 Menu Pilihan
@@ -237,11 +258,11 @@
                                 Makanan
                             </span>
                             <h3 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">Qtella</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Pilihan rasa: Balado, BBQ, Jagung Bakar, Extra Pedas</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Varian rasa: Balado, BBQ, Jagung Bakar, Extra Pedas</p>
                         </div>
                         <div class="text-right">
-                            <span class="font-black text-base sm:text-lg text-slate-900 block">Rp5.000</span>
-                            <span class="text-[11px] text-slate-400 font-medium">per bungkus</span>
+                            <span class="font-black text-sm sm:text-base text-slate-900 block">Harga Kustom</span>
+                            <span class="text-[11px] text-indigo-600 font-bold">Shortcut 5k & 10k</span>
                         </div>
                     </div>
 
@@ -253,9 +274,10 @@
                                 <span class="font-black text-indigo-700" x-text="getGroupCartCount('qtella') + ' porsi'"></span>
                             </div>
                             <div class="flex flex-wrap gap-1.5">
-                                <template x-for="item in getGroupCartItems('qtella')" :key="item.id">
+                                <template x-for="item in getGroupCartItems('qtella')" :key="item.key">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-800 shadow-2xs">
                                         <span x-text="item.name.replace('Qtella - ', '')"></span>
+                                        <span class="text-slate-500" x-text="'(' + formatRupiah(item.price) + ')'"></span>
                                         <span class="font-black text-indigo-700" x-text="'×' + item.quantity"></span>
                                     </span>
                                 </template>
@@ -271,7 +293,7 @@
                             class="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition duration-150 cursor-pointer text-center flex items-center justify-center gap-2"
                             :class="getGroupCartCount('qtella') > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs' : 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600'"
                         >
-                            <span x-text="getGroupCartCount('qtella') > 0 ? '+ Tambah Rasa Lain / Porsi' : 'Pilih Rasa'"></span>
+                            <span x-text="getGroupCartCount('qtella') > 0 ? '+ Tambah Rasa / Harga Lain' : 'Pilih Rasa & Harga'"></span>
                         </button>
                     </div>
                 </div>
@@ -287,11 +309,11 @@
                                 Makanan
                             </span>
                             <h3 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">Kerupuk Koin</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Kustom 2 Sub Menu: Pilihan Harga (2k / 3k) & 4 Varian Rasa</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Varian rasa: Balado, BBQ, Jagung Bakar, Extra Pedas</p>
                         </div>
                         <div class="text-right">
-                            <span class="font-black text-base sm:text-lg text-slate-900 block">Rp2.000 / Rp3.000</span>
-                            <span class="text-[11px] text-slate-400 font-medium">kustom porsi</span>
+                            <span class="font-black text-sm sm:text-base text-slate-900 block">Harga Kustom</span>
+                            <span class="text-[11px] text-indigo-600 font-bold">Shortcut 2k, 3k, 5k, 10k</span>
                         </div>
                     </div>
 
@@ -303,9 +325,10 @@
                                 <span class="font-black text-indigo-700" x-text="getGroupCartCount('koin') + ' porsi'"></span>
                             </div>
                             <div class="flex flex-wrap gap-1.5">
-                                <template x-for="item in getGroupCartItems('koin')" :key="item.id">
+                                <template x-for="item in getGroupCartItems('koin')" :key="item.key">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-800 shadow-2xs">
-                                        <span x-text="item.name.replace('Krupuk Koin ', '')"></span>
+                                        <span x-text="item.name.replace('Kerupuk Koin - ', '').replace('Krupuk Koin - ', '')"></span>
+                                        <span class="text-slate-500" x-text="'(' + formatRupiah(item.price) + ')'"></span>
                                         <span class="font-black text-indigo-700" x-text="'×' + item.quantity"></span>
                                     </span>
                                 </template>
@@ -321,7 +344,7 @@
                             class="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition duration-150 cursor-pointer text-center flex items-center justify-center gap-2"
                             :class="getGroupCartCount('koin') > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs' : 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600'"
                         >
-                            <span x-text="getGroupCartCount('koin') > 0 ? '+ Tambah Varian / Harga Lain' : 'Pilih Varian & Rasa (2k/3k)'"></span>
+                            <span x-text="getGroupCartCount('koin') > 0 ? '+ Tambah Rasa / Harga Lain' : 'Pilih Rasa & Harga'"></span>
                         </button>
                     </div>
                 </div>
@@ -361,7 +384,7 @@
                             <div class="flex items-center justify-between gap-2 bg-sky-600 text-white rounded-xl p-1.5">
                                 <button 
                                     type="button" 
-                                    @click="const m = getMojitoProduct(); if (m) decrementQuantity(m.id);"
+                                    @click="const it = getGroupCartItems('mojito')[0]; if (it) decrementQuantity(it.key);"
                                     class="w-8 h-8 rounded-lg bg-sky-700 hover:bg-sky-800 active:scale-95 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer"
                                 >
                                     -
@@ -407,7 +430,7 @@
 
                 <!-- Cart Items List -->
                 <div x-show="totalItemsCount > 0" class="divide-y divide-slate-100 max-h-60 overflow-y-auto pr-1">
-                    <template x-for="item in cartItems" :key="item.id">
+                    <template x-for="item in cartItems" :key="item.key">
                         <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
                             <div class="flex-1 min-w-0">
                                 <div class="font-bold text-slate-900 truncate" x-text="item.name"></div>
@@ -417,7 +440,7 @@
                             <div class="flex items-center gap-1">
                                 <button 
                                     type="button" 
-                                    @click="decrementQuantity(item.id)"
+                                    @click="decrementQuantity(item.key)"
                                     class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     -
@@ -425,7 +448,7 @@
                                 <span class="w-6 text-center font-bold text-xs text-slate-900" x-text="item.quantity"></span>
                                 <button 
                                     type="button" 
-                                    @click="addToCart({ id: item.id, name: item.name, price: item.price })"
+                                    @click="incrementQuantity(item.key)"
                                     class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     +
@@ -496,9 +519,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- MODAL SUB-MENU 1: PILIH RASA QTELLA (5K)    -->
-        <!-- ========================================== -->
+        <!-- ======================================================== -->
+        <!-- MODAL SUB-MENU 1: QTELLA (PILIH RASA & INPUT / SHORTCUT) -->
+        <!-- ======================================================== -->
         <div 
             x-show="showQtellaModal"
             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
@@ -520,8 +543,8 @@
                         <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">
                             Makanan
                         </span>
-                        <h3 class="font-black text-lg text-slate-900 mt-1">Qtella (5k)</h3>
-                        <p class="text-xs text-slate-500">Pilih salah satu varian rasa</p>
+                        <h3 class="font-black text-lg text-slate-900 mt-1">Qtella</h3>
+                        <p class="text-xs text-slate-500">Pilih rasa dan atur harga pesanan</p>
                     </div>
                     <button 
                         type="button" 
@@ -532,10 +555,10 @@
                     </button>
                 </div>
 
-                <!-- Sub Menu: Pilihan Rasa -->
+                <!-- Sub Menu 1: Pilihan Rasa -->
                 <div class="space-y-2">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Sub Menu: Pilih Rasa
+                        1. Pilih Rasa
                     </label>
                     <div class="grid grid-cols-2 gap-2">
                         <template x-for="flavor in flavors" :key="flavor">
@@ -553,10 +576,60 @@
                     </div>
                 </div>
 
-                <!-- Sub Menu: Pilihan Jumlah Porsi -->
+                <!-- Sub Menu 2: Harga / Porsi (Shortcut & Custom Input) -->
+                <div class="space-y-2 pt-1 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            2. Harga Satuan (Rp)
+                        </label>
+                        <span class="text-[11px] font-bold text-indigo-600" x-text="formatRupiah(qtellaPrice || 0) + ' / bungkus'"></span>
+                    </div>
+
+                    <!-- Shortcut Buttons: 5k & 10k -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button 
+                            type="button" 
+                            @click="setQtellaPrice(5000)"
+                            :class="qtellaPrice === 5000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 ring-2 ring-indigo-200 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">Shortcut 5k</span>
+                            <span class="block text-[11px] opacity-80 font-medium">Rp5.000</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setQtellaPrice(10000)"
+                            :class="qtellaPrice === 10000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 ring-2 ring-indigo-200 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">Shortcut 10k</span>
+                            <span class="block text-[11px] opacity-80 font-medium">Rp10.000</span>
+                        </button>
+                    </div>
+
+                    <!-- Manual Input Field for Custom Price -->
+                    <div class="pt-1">
+                        <span class="block text-[11px] text-slate-500 font-medium mb-1">Atau input nominal kustom (Rp):</span>
+                        <input 
+                            type="number" 
+                            step="500" 
+                            min="500" 
+                            x-model.number="qtellaPrice" 
+                            placeholder="5000"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Sub Menu 3: Jumlah Porsi -->
                 <div class="space-y-2 pt-1 border-t border-slate-100">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Jumlah Porsi
+                        3. Jumlah Porsi
                     </label>
                     <div class="flex items-center justify-center gap-3">
                         <button 
@@ -583,14 +656,17 @@
                 <!-- Subtotal Preview & Submit -->
                 <div class="pt-2 border-t border-slate-100 space-y-2.5">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 font-medium">Subtotal Qtella:</span>
-                        <span class="font-black text-indigo-700 text-sm" x-text="formatRupiah(5000 * qtellaQty)"></span>
+                        <span class="text-slate-500 font-medium">
+                            <span x-text="'Qtella ' + selectedQtellaFlavor + ' (' + formatRupiah(qtellaPrice || 0) + ')'"></span>
+                        </span>
+                        <span class="font-black text-indigo-700 text-sm" x-text="formatRupiah((qtellaPrice || 0) * qtellaQty)"></span>
                     </div>
 
                     <button 
                         type="button" 
                         @click="addQtellaToCart()"
-                        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
+                        :disabled="!qtellaPrice || qtellaPrice <= 0"
+                        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
                     >
                         + Tambahkan ke Keranjang
                     </button>
@@ -599,7 +675,7 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- MODAL SUB-MENU 2: KERUPUK KOIN (SUB-MENU HARGA 2K/3K & RASA)    -->
+        <!-- MODAL SUB-MENU 2: KERUPUK KOIN (RASA & HARGA KUSTOM 2K-10K)     -->
         <!-- ============================================================== -->
         <div 
             x-show="showKoinModal"
@@ -623,7 +699,7 @@
                             Makanan
                         </span>
                         <h3 class="font-black text-lg text-slate-900 mt-1">Kerupuk Koin</h3>
-                        <p class="text-xs text-slate-500">Kustomisasi ukuran harga dan rasa</p>
+                        <p class="text-xs text-slate-500">Pilih varian rasa & atur harga kustom</p>
                     </div>
                     <button 
                         type="button" 
@@ -634,42 +710,10 @@
                     </button>
                 </div>
 
-                <!-- Sub Menu 1: Pilihan Harga / Porsi (2k / 3k) -->
+                <!-- Sub Menu 1: Pilihan Rasa -->
                 <div class="space-y-2">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Sub Menu 1: Pilihan Harga / Porsi
-                    </label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button 
-                            type="button" 
-                            @click="selectedKoinTier = '2k'"
-                            :class="selectedKoinTier === '2k' 
-                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 ring-2 ring-indigo-200 shadow-xs' 
-                                : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 font-semibold'"
-                            class="p-3 rounded-xl border text-center transition cursor-pointer"
-                        >
-                            <span class="block text-sm font-black">Porsi 2K</span>
-                            <span class="block text-[11px] opacity-80 font-medium">Rp2.000</span>
-                        </button>
-
-                        <button 
-                            type="button" 
-                            @click="selectedKoinTier = '3k'"
-                            :class="selectedKoinTier === '3k' 
-                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 ring-2 ring-indigo-200 shadow-xs' 
-                                : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 font-semibold'"
-                            class="p-3 rounded-xl border text-center transition cursor-pointer"
-                        >
-                            <span class="block text-sm font-black">Porsi 3K</span>
-                            <span class="block text-[11px] opacity-80 font-medium">Rp3.000</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Sub Menu 2: Pilihan Rasa -->
-                <div class="space-y-2 pt-1 border-t border-slate-100">
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Sub Menu 2: Pilihan Rasa
+                        1. Pilih Rasa
                     </label>
                     <div class="grid grid-cols-2 gap-2">
                         <template x-for="flavor in flavors" :key="flavor">
@@ -687,10 +731,80 @@
                     </div>
                 </div>
 
-                <!-- Jumlah Porsi -->
+                <!-- Sub Menu 2: Harga / Porsi (Shortcut & Custom Input) -->
+                <div class="space-y-2 pt-1 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            2. Harga Satuan (Rp)
+                        </label>
+                        <span class="text-[11px] font-bold text-indigo-600" x-text="formatRupiah(koinPrice || 0) + ' / porsi'"></span>
+                    </div>
+
+                    <!-- Shortcut Buttons: 2k, 3k, 5k, 10k -->
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button 
+                            type="button" 
+                            @click="setKoinPrice(2000)"
+                            :class="koinPrice === 2000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">2k</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setKoinPrice(3000)"
+                            :class="koinPrice === 3000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">3k</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setKoinPrice(5000)"
+                            :class="koinPrice === 5000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">5k</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setKoinPrice(10000)"
+                            :class="koinPrice === 10000 
+                                ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">10k</span>
+                        </button>
+                    </div>
+
+                    <!-- Manual Input Field for Custom Price -->
+                    <div class="pt-1">
+                        <span class="block text-[11px] text-slate-500 font-medium mb-1">Atau input nominal kustom (Rp):</span>
+                        <input 
+                            type="number" 
+                            step="500" 
+                            min="500" 
+                            x-model.number="koinPrice" 
+                            placeholder="2000"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Sub Menu 3: Jumlah Porsi -->
                 <div class="space-y-2 pt-1 border-t border-slate-100">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Jumlah Porsi
+                        3. Jumlah Porsi
                     </label>
                     <div class="flex items-center justify-center gap-3">
                         <button 
@@ -718,15 +832,16 @@
                 <div class="pt-2 border-t border-slate-100 space-y-2.5">
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-slate-500 font-medium">
-                            <span x-text="'Koin ' + (selectedKoinTier === '2k' ? '2K' : '3K') + ' (' + selectedKoinFlavor + ')'"></span>
+                            <span x-text="'Koin ' + selectedKoinFlavor + ' (' + formatRupiah(koinPrice || 0) + ')'"></span>
                         </span>
-                        <span class="font-black text-indigo-700 text-sm" x-text="formatRupiah((selectedKoinTier === '2k' ? 2000 : 3000) * koinQty)"></span>
+                        <span class="font-black text-indigo-700 text-sm" x-text="formatRupiah((koinPrice || 0) * koinQty)"></span>
                     </div>
 
                     <button 
                         type="button" 
                         @click="addKoinToCart()"
-                        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
+                        :disabled="!koinPrice || koinPrice <= 0"
+                        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
                     >
                         + Tambahkan ke Keranjang
                     </button>
@@ -791,7 +906,7 @@
 
                 <!-- Items Review -->
                 <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto pr-1">
-                    <template x-for="item in cartItems" :key="item.id">
+                    <template x-for="item in cartItems" :key="item.key">
                         <div class="py-2.5 flex items-center justify-between text-xs">
                             <div class="flex-1 min-w-0 pr-2">
                                 <div class="font-bold text-slate-900 truncate" x-text="item.name"></div>
@@ -800,7 +915,7 @@
                             <div class="flex items-center gap-1.5">
                                 <button 
                                     type="button" 
-                                    @click="decrementQuantity(item.id)"
+                                    @click="decrementQuantity(item.key)"
                                     class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     -
@@ -808,7 +923,7 @@
                                 <span class="w-5 text-center font-bold text-xs text-slate-900" x-text="item.quantity"></span>
                                 <button 
                                     type="button" 
-                                    @click="addToCart({ id: item.id, name: item.name, price: item.price })"
+                                    @click="incrementQuantity(item.key)"
                                     class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     +
@@ -906,7 +1021,7 @@
                     </div>
 
                     <div class="pt-2 border-t border-slate-200 space-y-1">
-                        <template x-for="it in completedTx?.items" :key="it.name">
+                        <template x-for="it in completedTx?.items" :key="it.name + '_' + it.price">
                             <div class="flex justify-between text-[11px]">
                                 <span class="truncate max-w-[170px]" x-text="it.name + ' × ' + it.quantity"></span>
                                 <span class="font-bold" x-text="it.subtotal"></span>

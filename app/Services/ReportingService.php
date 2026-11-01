@@ -34,16 +34,10 @@ class ReportingService
             ->where('transactions.status', '!=', 'voided')
             ->select(
                 'transaction_items.product_id',
-                'transaction_items.product_name_snapshot',
-                'transaction_items.unit_price_snapshot',
                 DB::raw('SUM(transaction_items.quantity) as total_qty'),
                 DB::raw('SUM(transaction_items.subtotal) as total_subtotal')
             )
-            ->groupBy(
-                'transaction_items.product_id',
-                'transaction_items.product_name_snapshot',
-                'transaction_items.unit_price_snapshot'
-            )
+            ->groupBy('transaction_items.product_id')
             ->get()
             ->keyBy('product_id');
 
@@ -55,7 +49,7 @@ class ReportingService
             $sale = $sales->get($product->id);
             $qty = $sale ? (int) $sale->total_qty : 0;
             $subtotal = $sale ? (float) $sale->total_subtotal : 0.00;
-            $price = $sale ? (float) $sale->unit_price_snapshot : (float) $product->price;
+            $price = ($qty > 0) ? round($subtotal / $qty, 2) : (float) $product->price;
 
             $items[] = [
                 'product_id' => $product->id,

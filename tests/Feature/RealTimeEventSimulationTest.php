@@ -17,11 +17,9 @@ class RealTimeEventSimulationTest extends TestCase
 
     protected User $admin;
 
-    protected User $farhad;
+    protected User $kasirPagi;
 
-    protected User $natasya;
-
-    protected User $naila;
+    protected User $kasirSiang;
 
     protected EventDay $daySenin;
 
@@ -37,9 +35,8 @@ class RealTimeEventSimulationTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->admin = User::where('role', 'admin')->firstOrFail();
-        $this->farhad = User::where('username', 'farhad')->firstOrFail();
-        $this->natasya = User::where('username', 'natasya')->firstOrFail();
-        $this->naila = User::where('username', 'naila')->firstOrFail();
+        $this->kasirPagi = User::where('username', 'seninpagi')->firstOrFail();
+        $this->kasirSiang = User::where('username', 'seninsiang')->firstOrFail();
 
         $this->daySenin = EventDay::where('day_name', 'like', 'Senin%')->firstOrFail();
         $this->shift1 = Shift::where('event_day_id', $this->daySenin->id)->where('shift_number', 'Shift 1')->firstOrFail();
@@ -55,48 +52,48 @@ class RealTimeEventSimulationTest extends TestCase
         $this->shift2->update(['status' => 'scheduled', 'opened_at' => null, 'closed_at' => null, 'closed_by' => null]);
 
         $qtlBalado = Product::where('code', 'PRD-QTL-BAL')->firstOrFail();
-        $koin2Bbq = Product::where('code', 'PRD-KOIN2-BBQ')->firstOrFail();
-        $koin3Pedas = Product::where('code', 'PRD-KOIN3-PDS')->firstOrFail();
+        $qtlPedas = Product::where('code', 'PRD-QTL-PDS')->firstOrFail();
+        $koinBbq = Product::where('code', 'PRD-KOIN-BBQ')->firstOrFail();
         $mojito = Product::where('code', 'PRD-MOJITO')->firstOrFail();
 
-        // 1. Kasir Farhad melayani Transaksi 1: 2 Qtella Balado (Rp10.000, Tunai)
-        $resp1 = $this->actingAs($this->farhad)->postJson(route('cashier.pos.store'), [
+        // 1. Kasir seninpagi: 2 Qtella Balado (Rp5.000 shortcut) = Rp10.000, Tunai
+        $resp1 = $this->actingAs($this->kasirPagi)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift1->id,
             'payment_method' => 'cash',
             'notes' => 'Pembeli mahasiswa FEB',
             'items' => [
-                ['product_id' => $qtlBalado->id, 'quantity' => 2],
+                ['product_id' => $qtlBalado->id, 'custom_price' => 5000, 'quantity' => 2],
             ],
         ]);
         $resp1->assertOk()->assertJson(['success' => true]);
         $this->assertEquals(10000, $resp1->json('data.total_amount'));
 
-        // 2. Farhad melayani Transaksi 2: 1 Koin 2K BBQ + 1 Mojito (Rp7.000, QRIS)
-        $resp2 = $this->actingAs($this->farhad)->postJson(route('cashier.pos.store'), [
+        // 2. Kasir seninpagi: 1 Koin BBQ (kustom 3k) + 1 Mojito (Rp5.000) = Rp8.000, QRIS
+        $resp2 = $this->actingAs($this->kasirPagi)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift1->id,
             'payment_method' => 'qris',
             'notes' => 'Scan QRIS Stand',
             'items' => [
-                ['product_id' => $koin2Bbq->id, 'quantity' => 1],
+                ['product_id' => $koinBbq->id, 'custom_price' => 3000, 'quantity' => 1],
                 ['product_id' => $mojito->id, 'quantity' => 1],
             ],
         ]);
         $resp2->assertOk()->assertJson(['success' => true]);
-        $this->assertEquals(7000, $resp2->json('data.total_amount'));
+        $this->assertEquals(8000, $resp2->json('data.total_amount'));
 
-        // 3. Farhad melayani Transaksi 3: 3 Koin 3K Extra Pedas (Rp9.000, Transfer)
-        $resp3 = $this->actingAs($this->farhad)->postJson(route('cashier.pos.store'), [
+        // 3. Kasir seninpagi: 1 Qtella Extra Pedas (porsi besar shortcut 10k) = Rp10.000, Transfer
+        $resp3 = $this->actingAs($this->kasirPagi)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift1->id,
             'payment_method' => 'transfer',
             'items' => [
-                ['product_id' => $koin3Pedas->id, 'quantity' => 3],
+                ['product_id' => $qtlPedas->id, 'custom_price' => 10000, 'quantity' => 1],
             ],
         ]);
         $resp3->assertOk()->assertJson(['success' => true]);
-        $this->assertEquals(9000, $resp3->json('data.total_amount'));
+        $this->assertEquals(10000, $resp3->json('data.total_amount'));
 
-        // Cek Riwayat Pribadi Farhad
-        $historyResp = $this->actingAs($this->farhad)->get(route('cashier.history'));
+        // Cek Riwayat Pribadi seninpagi
+        $historyResp = $this->actingAs($this->kasirPagi)->get(route('cashier.history'));
         $historyResp->assertOk();
         $historyResp->assertSee($resp1->json('data.invoice_code'));
         $historyResp->assertSee($resp2->json('data.invoice_code'));
@@ -110,12 +107,12 @@ class RealTimeEventSimulationTest extends TestCase
         $closeResp->assertRedirect();
         $this->assertTrue($this->shift1->fresh()->isClosed());
 
-        // Setelah shift ditutup, kasir Farhad DILARANG memproses transaksi lagi
-        $forbiddenResp = $this->actingAs($this->farhad)->postJson(route('cashier.pos.store'), [
+        // Setelah shift ditutup, kasir seninpagi DILARANG memproses transaksi lagi
+        $forbiddenResp = $this->actingAs($this->kasirPagi)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift1->id,
             'payment_method' => 'cash',
             'items' => [
-                ['product_id' => $qtlBalado->id, 'quantity' => 1],
+                ['product_id' => $qtlBalado->id, 'custom_price' => 5000, 'quantity' => 1],
             ],
         ]);
         $forbiddenResp->assertStatus(422);
@@ -129,30 +126,30 @@ class RealTimeEventSimulationTest extends TestCase
         // SESI 3: HARI SENIN — SHIFT 2 (SIANG/SORE)
         // -------------------------------------------------------------
         $qtlJagung = Product::where('code', 'PRD-QTL-JAG')->firstOrFail();
-        $koin2Balado = Product::where('code', 'PRD-KOIN2-BAL')->firstOrFail();
+        $koinBalado = Product::where('code', 'PRD-KOIN-BAL')->firstOrFail();
 
-        // 4. Kasir Natasya melayani Transaksi 4: 1 Qtella Jagung Bakar + 2 Mojito (Rp15.000, Tunai)
-        $resp4 = $this->actingAs($this->natasya)->postJson(route('cashier.pos.store'), [
+        // 4. Kasir seninsiang: 1 Qtella Jagung Bakar 5k + 2 Mojito 5k = Rp15.000, Tunai
+        $resp4 = $this->actingAs($this->kasirSiang)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift2->id,
             'payment_method' => 'cash',
             'items' => [
-                ['product_id' => $qtlJagung->id, 'quantity' => 1],
+                ['product_id' => $qtlJagung->id, 'custom_price' => 5000, 'quantity' => 1],
                 ['product_id' => $mojito->id, 'quantity' => 2],
             ],
         ]);
         $resp4->assertOk()->assertJson(['success' => true]);
         $this->assertEquals(15000, $resp4->json('data.total_amount'));
 
-        // 5. Kasir Naila melayani Transaksi 5 secara bersamaan: 2 Koin 2K Balado (Rp4.000, QRIS)
-        $resp5 = $this->actingAs($this->naila)->postJson(route('cashier.pos.store'), [
+        // 5. Kasir seninsiang: 2 Kerupuk Koin Balado (shortcut 5k) = Rp10.000, QRIS
+        $resp5 = $this->actingAs($this->kasirSiang)->postJson(route('cashier.pos.store'), [
             'shift_id' => $this->shift2->id,
             'payment_method' => 'qris',
             'items' => [
-                ['product_id' => $koin2Balado->id, 'quantity' => 2],
+                ['product_id' => $koinBalado->id, 'custom_price' => 5000, 'quantity' => 2],
             ],
         ]);
         $resp5->assertOk()->assertJson(['success' => true]);
-        $this->assertEquals(4000, $resp5->json('data.total_amount'));
+        $this->assertEquals(10000, $resp5->json('data.total_amount'));
 
         // Admin menutup Shift 2
         $this->actingAs($this->admin)->post(route('admin.shifts.close', $this->shift2));
@@ -165,12 +162,12 @@ class RealTimeEventSimulationTest extends TestCase
         $reportResp->assertOk();
 
         // Verifikasi kalkulasi omzet di laporan:
-        // Shift 1: Rp10.000 + Rp7.000 + Rp9.000 = Rp26.000 (7 unit)
-        // Shift 2: Rp15.000 + Rp4.000 = Rp19.000 (5 unit)
-        // Total Hari: Rp45.000 (12 unit)
-        $reportResp->assertSee('26.000');
-        $reportResp->assertSee('19.000');
-        $reportResp->assertSee('45.000');
+        // Shift 1: Rp10.000 + Rp8.000 + Rp10.000 = Rp28.000 (4 unit)
+        // Shift 2: Rp15.000 + Rp10.000 = Rp25.000 (5 unit)
+        // Total Hari: Rp53.000 (9 unit)
+        $reportResp->assertSee('28.000');
+        $reportResp->assertSee('25.000');
+        $reportResp->assertSee('53.000');
 
         // -------------------------------------------------------------
         // SESI 5: EXPORT EXCEL SPREADSHEET
@@ -206,9 +203,9 @@ class RealTimeEventSimulationTest extends TestCase
             'reason' => 'Pembeli membatalkan pesanan karena salah varian rasa',
         ]);
 
-        // Verifikasi laporan terupdate otomatis (Rp45.000 - Rp4.000 = Rp41.000)
+        // Verifikasi laporan terupdate otomatis (Rp53.000 - Rp10.000 = Rp43.000)
         $updatedReportResp = $this->actingAs($this->admin)->get(route('admin.reports.daily', ['event_day_id' => $this->daySenin->id]));
         $updatedReportResp->assertOk();
-        $updatedReportResp->assertSee('41.000');
+        $updatedReportResp->assertSee('43.000');
     }
 }

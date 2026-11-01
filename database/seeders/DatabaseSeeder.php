@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\Hash;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database with actual event stand data.
+     * Seed the application's database.
      */
     public function run(): void
     {
-        // 1. Admin Account (New Password)
+        // 1. Admin Master Account
         $admin = User::updateOrCreate(
             ['username' => 'admin'],
             [
@@ -30,36 +30,38 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Real Cashier Accounts (8 Team Members)
-        $teamMembers = [
-            ['username' => 'farhad', 'name' => 'Farhad', 'email' => 'farhad@stand-pktos.local'],
-            ['username' => 'natasya', 'name' => 'Natasya', 'email' => 'natasya@stand-pktos.local'],
-            ['username' => 'naila', 'name' => 'Naila', 'email' => 'naila@stand-pktos.local'],
-            ['username' => 'gita', 'name' => 'Gita', 'email' => 'gita@stand-pktos.local'],
-            ['username' => 'azzilfa', 'name' => 'Azzilfa', 'email' => 'azzilfa@stand-pktos.local'],
-            ['username' => 'rani', 'name' => 'Rani', 'email' => 'rani@stand-pktos.local'],
-            ['username' => 'gustian', 'name' => 'Gustian', 'email' => 'gustian@stand-pktos.local'],
-            ['username' => 'alya', 'name' => 'Alya', 'email' => 'alya@stand-pktos.local'],
+        // 2. Akun Kasir Berbasis Shift (Shift Accounts)
+        $shiftAccounts = [
+            ['username' => 'seninpagi', 'name' => 'Petugas Shift Pagi (Senin)', 'email' => 'seninpagi@stand-pktos.local'],
+            ['username' => 'seninsiang', 'name' => 'Petugas Shift Siang (Senin)', 'email' => 'seninsiang@stand-pktos.local'],
+            ['username' => 'selasapagi', 'name' => 'Petugas Shift Pagi (Selasa)', 'email' => 'selasapagi@stand-pktos.local'],
+            ['username' => 'selasasiang', 'name' => 'Petugas Shift Siang (Selasa)', 'email' => 'selasasiang@stand-pktos.local'],
+            ['username' => 'rabupagi', 'name' => 'Petugas Shift Pagi (Rabu)', 'email' => 'rabupagi@stand-pktos.local'],
+            ['username' => 'rabusiang', 'name' => 'Petugas Shift Siang (Rabu)', 'email' => 'rabusiang@stand-pktos.local'],
+            ['username' => 'kamispagi', 'name' => 'Petugas Shift Pagi (Kamis)', 'email' => 'kamispagi@stand-pktos.local'],
+            ['username' => 'kamissiang', 'name' => 'Petugas Shift Siang (Kamis)', 'email' => 'kamissiang@stand-pktos.local'],
+            ['username' => 'jumatpagi', 'name' => 'Petugas Shift Pagi (Jumat)', 'email' => 'jumatpagi@stand-pktos.local'],
+            ['username' => 'jumatsiang', 'name' => 'Petugas Shift Siang (Jumat)', 'email' => 'jumatsiang@stand-pktos.local'],
         ];
 
         $usersByUsername = [];
-        foreach ($teamMembers as $tm) {
+        foreach ($shiftAccounts as $acc) {
             $user = User::updateOrCreate(
-                ['username' => $tm['username']],
+                ['username' => $acc['username']],
                 [
-                    'name' => $tm['name'],
-                    'email' => $tm['email'],
-                    'password' => Hash::make($tm['username'].'2026'),
+                    'name' => $acc['name'],
+                    'email' => $acc['email'],
+                    'password' => Hash::make($acc['username'].'2026'),
                     'role' => 'cashier',
                     'is_active' => true,
                 ]
             );
-            $usersByUsername[$tm['username']] = $user;
+            $usersByUsername[$acc['username']] = $user;
         }
 
-        // 3. Stand Menu & Flavors
+        // 3. Menu Stand PKTOS (Makanan & Minuman)
         $menuItems = [
-            // Qtella 5k
+            // Qtella (Makanan - 4 varian rasa)
             [
                 'code' => 'PRD-QTL-BAL',
                 'name' => 'Qtella - Balado',
@@ -89,64 +91,34 @@ class DatabaseSeeder extends Seeder
                 'sort_order' => 4,
             ],
 
-            // Krupuk Koin 2K
+            // Kerupuk Koin (Makanan - 4 varian rasa)
             [
-                'code' => 'PRD-KOIN2-BAL',
-                'name' => 'Krupuk Koin 2K - Balado',
+                'code' => 'PRD-KOIN-BAL',
+                'name' => 'Kerupuk Koin - Balado',
                 'category' => 'Makanan',
                 'price' => 2000,
                 'sort_order' => 5,
             ],
             [
-                'code' => 'PRD-KOIN2-BBQ',
-                'name' => 'Krupuk Koin 2K - BBQ',
+                'code' => 'PRD-KOIN-BBQ',
+                'name' => 'Kerupuk Koin - BBQ',
                 'category' => 'Makanan',
                 'price' => 2000,
                 'sort_order' => 6,
             ],
             [
-                'code' => 'PRD-KOIN2-JAG',
-                'name' => 'Krupuk Koin 2K - Jagung Bakar',
+                'code' => 'PRD-KOIN-JAG',
+                'name' => 'Kerupuk Koin - Jagung Bakar',
                 'category' => 'Makanan',
                 'price' => 2000,
                 'sort_order' => 7,
             ],
             [
-                'code' => 'PRD-KOIN2-PDS',
-                'name' => 'Krupuk Koin 2K - Extra Pedas',
+                'code' => 'PRD-KOIN-PDS',
+                'name' => 'Kerupuk Koin - Extra Pedas',
                 'category' => 'Makanan',
                 'price' => 2000,
                 'sort_order' => 8,
-            ],
-
-            // Krupuk Koin 3K
-            [
-                'code' => 'PRD-KOIN3-BAL',
-                'name' => 'Krupuk Koin 3K - Balado',
-                'category' => 'Makanan',
-                'price' => 3000,
-                'sort_order' => 9,
-            ],
-            [
-                'code' => 'PRD-KOIN3-BBQ',
-                'name' => 'Krupuk Koin 3K - BBQ',
-                'category' => 'Makanan',
-                'price' => 3000,
-                'sort_order' => 10,
-            ],
-            [
-                'code' => 'PRD-KOIN3-JAG',
-                'name' => 'Krupuk Koin 3K - Jagung Bakar',
-                'category' => 'Makanan',
-                'price' => 3000,
-                'sort_order' => 11,
-            ],
-            [
-                'code' => 'PRD-KOIN3-PDS',
-                'name' => 'Krupuk Koin 3K - Extra Pedas',
-                'category' => 'Makanan',
-                'price' => 3000,
-                'sort_order' => 12,
             ],
 
             // Minuman
@@ -155,7 +127,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Mojito',
                 'category' => 'Minuman',
                 'price' => 5000,
-                'sort_order' => 13,
+                'sort_order' => 9,
             ],
         ];
 
@@ -180,36 +152,36 @@ class DatabaseSeeder extends Seeder
                 'day_name' => 'Senin (Pembukaan)',
                 'offset' => 0,
                 'status' => 'active',
-                'shift_pagi' => ['farhad'],
-                'shift_siang' => ['natasya', 'naila'],
+                'shift_pagi' => ['seninpagi'],
+                'shift_siang' => ['seninsiang'],
             ],
             [
                 'day_name' => 'Selasa',
                 'offset' => 1,
                 'status' => 'upcoming',
-                'shift_pagi' => ['gita', 'azzilfa'],
-                'shift_siang' => ['farhad', 'rani'],
+                'shift_pagi' => ['selasapagi'],
+                'shift_siang' => ['selasasiang'],
             ],
             [
                 'day_name' => 'Rabu',
                 'offset' => 2,
                 'status' => 'upcoming',
-                'shift_pagi' => ['natasya', 'gustian'],
-                'shift_siang' => ['gita', 'azzilfa'],
+                'shift_pagi' => ['rabupagi'],
+                'shift_siang' => ['rabusiang'],
             ],
             [
                 'day_name' => 'Kamis',
                 'offset' => 3,
                 'status' => 'upcoming',
-                'shift_pagi' => ['naila', 'rani'],
-                'shift_siang' => ['gustian', 'alya'],
+                'shift_pagi' => ['kamispagi'],
+                'shift_siang' => ['kamissiang'],
             ],
             [
                 'day_name' => 'Jumat (Penutupan)',
                 'offset' => 4,
                 'status' => 'upcoming',
-                'shift_pagi' => ['farhad', 'alya'],
-                'shift_siang' => ['natasya', 'rani'],
+                'shift_pagi' => ['jumatpagi'],
+                'shift_siang' => ['jumatsiang'],
             ],
         ];
 

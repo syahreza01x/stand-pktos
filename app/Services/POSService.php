@@ -88,7 +88,12 @@ class POSService
                     throw new Exception("Produk ID {$productId} tidak ditemukan dalam database.");
                 }
 
-                $unitPrice = (float) $product->price;
+                if (! empty($item['custom_price']) && is_numeric($item['custom_price']) && (float) $item['custom_price'] > 0) {
+                    $unitPrice = (float) $item['custom_price'];
+                } else {
+                    $unitPrice = (float) $product->price;
+                }
+
                 $itemSubtotal = $unitPrice * $quantity;
 
                 $totalItems += $quantity;

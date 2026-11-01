@@ -51,6 +51,7 @@ class POSController extends Controller
             'notes' => ['nullable', 'string', 'max:255'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.custom_price' => ['nullable', 'numeric', 'min:500'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [
             'items.required' => 'Keranjang belanja tidak boleh kosong.',

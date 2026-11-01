@@ -97,13 +97,19 @@ class AuthTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_seeded_cashier_can_login_with_username_plus_2026_password(): void
+    public function test_seeded_shift_accounts_can_login_with_username_plus_2026_password(): void
     {
         $this->seed(DatabaseSeeder::class);
 
-        $teamMembers = ['farhad', 'natasya', 'naila', 'gita', 'azzilfa', 'rani', 'gustian', 'alya'];
+        $shiftAccounts = [
+            'seninpagi', 'seninsiang',
+            'selasapagi', 'selasasiang',
+            'rabupagi', 'rabusiang',
+            'kamispagi', 'kamissiang',
+            'jumatpagi', 'jumatsiang',
+        ];
 
-        foreach ($teamMembers as $username) {
+        foreach ($shiftAccounts as $username) {
             $user = User::where('username', $username)->firstOrFail();
             $password = $username.'2026';
 
