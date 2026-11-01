@@ -198,7 +198,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            // Shift 1: Shift Pagi (08:00 - 12:30)
+            // Shift 1: Shift Pagi (08:00 - 12:45)
             $isMondayOpen = ($sc['offset'] === 0);
             $s1Status = $isMondayOpen ? 'open' : 'scheduled';
 
@@ -208,25 +208,25 @@ class DatabaseSeeder extends Seeder
                     'shift_number' => 'Shift 1',
                 ],
                 [
-                    'name' => 'Shift Pagi (08:00 - 12:30)',
+                    'name' => 'Shift Pagi (08:00 - 12:45)',
                     'start_time' => '08:00:00',
-                    'end_time' => '12:30:00',
+                    'end_time' => '12:45:00',
                     'status' => $s1Status,
                     'opened_at' => $isMondayOpen ? Carbon::now() : null,
                     'opened_by' => $isMondayOpen ? $admin->id : null,
                 ]
             );
 
-            // Shift 2: Shift Siang (12:30 - 17:00)
+            // Shift 2: Shift Siang (13:15 - 17:15)
             $shiftSiang = Shift::updateOrCreate(
                 [
                     'event_day_id' => $eventDay->id,
                     'shift_number' => 'Shift 2',
                 ],
                 [
-                    'name' => 'Shift Siang (12:30 - 17:00)',
-                    'start_time' => '12:30:00',
-                    'end_time' => '17:00:00',
+                    'name' => 'Shift Siang (13:15 - 17:15)',
+                    'start_time' => '13:15:00',
+                    'end_time' => '17:15:00',
                     'status' => 'scheduled',
                 ]
             );

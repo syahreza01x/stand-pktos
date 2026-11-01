@@ -56,7 +56,7 @@ class ShopeePayQRISIntegrationTest extends TestCase
             'shift_number' => 'Shift 1',
             'name' => 'Shift Pagi',
             'start_time' => '08:00:00',
-            'end_time' => '12:30:00',
+            'end_time' => '12:45:00',
             'status' => 'open',
             'opened_at' => now(),
         ]);

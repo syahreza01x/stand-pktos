@@ -63,7 +63,7 @@ class CashierShiftReconciliationTest extends TestCase
             'shift_number' => 'Shift 1',
             'name' => 'Shift Pagi',
             'start_time' => '08:00:00',
-            'end_time' => '12:30:00',
+            'end_time' => '12:45:00',
             'status' => 'open',
             'opened_at' => now(),
         ]);
@@ -72,8 +72,8 @@ class CashierShiftReconciliationTest extends TestCase
             'event_day_id' => $this->daySenin->id,
             'shift_number' => 'Shift 2',
             'name' => 'Shift Siang',
-            'start_time' => '12:30:00',
-            'end_time' => '17:00:00',
+            'start_time' => '13:15:00',
+            'end_time' => '17:15:00',
             'status' => 'scheduled',
         ]);
 
