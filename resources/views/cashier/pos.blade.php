@@ -29,8 +29,58 @@
 
             flavors: ['Balado', 'BBQ', 'Jagung Bakar', 'Extra Pedas'],
 
+            // Live QRIS ShopeePay state
+            liveQrisList: [],
+            isCheckingQris: false,
+            qrisTotalNetSales: 'Rp0',
+            lastQrisCheckTime: '',
+            qrisMatched: false,
+            qrisMatchMessage: '',
+
             init() {
                 this.generateIdempotencyKey();
+                this.fetchLiveQris(false);
+            },
+
+            async fetchLiveQris(force = true) {
+                this.isCheckingQris = true;
+                try {
+                    const res = await fetch('{{ route('cashier.qris.live-mutations') }}?refresh=' + (force ? '1' : '0'));
+                    const data = await res.json();
+                    if (data && data.success) {
+                        this.liveQrisList = data.transactions || [];
+                        this.qrisTotalNetSales = data.formatted_total_net_sales || 'Rp0';
+                        this.lastQrisCheckTime = data.fetched_at || '';
+                        this.checkQrisMatch();
+                    }
+                } catch (e) {
+                    console.error('QRIS poll error', e);
+                } finally {
+                    this.isCheckingQris = false;
+                }
+            },
+
+            checkQrisMatch() {
+                if (this.totalAmount <= 0) {
+                    this.qrisMatched = false;
+                    this.qrisMatchMessage = '';
+                    return;
+                }
+                const found = this.liveQrisList.find(tx => tx.is_success && Math.abs(tx.amount - this.totalAmount) < 0.01);
+                if (found) {
+                    this.qrisMatched = true;
+                    this.qrisMatchMessage = 'Pembayaran ' + found.formatted_amount + ' terverifikasi masuk (' + found.formatted_time + ')';
+                } else {
+                    this.qrisMatched = false;
+                    this.qrisMatchMessage = 'Belum ada pembayaran ' + this.formatRupiah(this.totalAmount) + ' baru. Minta pembeli scan & klik Cek.';
+                }
+            },
+
+            setPaymentMethod(method) {
+                this.paymentMethod = method;
+                if (method === 'qris') {
+                    this.fetchLiveQris(true);
+                }
             },
 
             generateIdempotencyKey() {
@@ -508,7 +558,7 @@
                         <div class="grid grid-cols-3 gap-1.5">
                             <button 
                                 type="button" 
-                                @click="paymentMethod = 'cash'"
+                                @click="setPaymentMethod('cash')"
                                 :class="paymentMethod === 'cash' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
                                 class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
@@ -516,7 +566,7 @@
                             </button>
                             <button 
                                 type="button" 
-                                @click="paymentMethod = 'qris'"
+                                @click="setPaymentMethod('qris')"
                                 :class="paymentMethod === 'qris' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
                                 class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
@@ -524,12 +574,70 @@
                             </button>
                             <button 
                                 type="button" 
-                                @click="paymentMethod = 'transfer'"
+                                @click="setPaymentMethod('transfer')"
                                 :class="paymentMethod === 'transfer' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
                                 class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
                                 Transfer
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Live QRIS ShopeePay Verification Box (Desktop) -->
+                    <div x-show="paymentMethod === 'qris'" class="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-sky-900 tracking-wider block">QRIS Stand GenBI (ShopeePay)</span>
+                                <span class="text-[11px] text-slate-500">Cek mutasi uang masuk otomatis</span>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="fetchLiveQris(true)"
+                                :disabled="isCheckingQris"
+                                class="px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-sky-100 disabled:opacity-50 text-sky-700 border border-sky-300 rounded-lg shadow-xs transition cursor-pointer"
+                            >
+                                <span x-show="!isCheckingQris">Cek Masuk</span>
+                                <span x-show="isCheckingQris">Memeriksa...</span>
+                            </button>
+                        </div>
+
+                        <!-- Match Alert Status -->
+                        <div x-show="totalAmount > 0">
+                            <template x-if="qrisMatched">
+                                <div class="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs flex items-center justify-between">
+                                    <div>
+                                        <span class="block text-[10px] uppercase tracking-wider text-emerald-800 font-black">Uang Masuk Terverifikasi</span>
+                                        <span x-text="qrisMatchMessage"></span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 font-black text-[10px]">COCOK</span>
+                                </div>
+                            </template>
+                            <template x-if="!qrisMatched">
+                                <div class="p-2.5 rounded-xl bg-white/80 border border-sky-200 text-slate-600 text-[11px]">
+                                    <div class="flex items-center justify-between font-semibold">
+                                        <span>Menunggu scan pembeli...</span>
+                                        <span class="font-mono text-slate-500" x-text="formatRupiah(totalAmount)"></span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 block mt-0.5" x-text="qrisMatchMessage || 'Minta pembeli scan QRIS, lalu klik tombol Cek Masuk.'"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Recent 3 incoming transactions -->
+                        <div class="pt-2 border-t border-sky-200/60 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Mutasi QRIS Terkini:</span>
+                            <template x-if="liveQrisList.length === 0">
+                                <div class="text-[11px] text-slate-400 italic">Belum ada transaksi QRIS masuk.</div>
+                            </template>
+                            <template x-for="item in liveQrisList.slice(0, 3)" :key="item.transaction_id">
+                                <div class="flex items-center justify-between text-[11px] bg-white/80 px-2 py-1.5 rounded-lg border border-sky-100">
+                                    <div>
+                                        <strong class="text-slate-800" x-text="item.formatted_amount"></strong>
+                                        <span class="text-[10px] text-slate-400 ml-1" x-text="item.time_ago"></span>
+                                    </div>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" x-text="item.status_label"></span>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -981,7 +1089,7 @@
                     <div class="grid grid-cols-3 gap-2">
                         <button 
                             type="button" 
-                            @click="paymentMethod = 'cash'"
+                            @click="setPaymentMethod('cash')"
                             :class="paymentMethod === 'cash' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
                             class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                         >
@@ -989,7 +1097,7 @@
                         </button>
                         <button 
                             type="button" 
-                            @click="paymentMethod = 'qris'"
+                            @click="setPaymentMethod('qris')"
                             :class="paymentMethod === 'qris' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
                             class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                         >
@@ -997,12 +1105,70 @@
                         </button>
                         <button 
                             type="button" 
-                            @click="paymentMethod = 'transfer'"
+                            @click="setPaymentMethod('transfer')"
                             :class="paymentMethod === 'transfer' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
                             class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                         >
                             Transfer
                         </button>
+                    </div>
+                </div>
+
+                <!-- Live QRIS ShopeePay Verification Box (Mobile) -->
+                <div x-show="paymentMethod === 'qris'" class="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-black uppercase text-sky-900 tracking-wider block">QRIS Stand GenBI (ShopeePay)</span>
+                            <span class="text-[11px] text-slate-500">Cek mutasi uang masuk otomatis</span>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="fetchLiveQris(true)"
+                            :disabled="isCheckingQris"
+                            class="px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-sky-100 disabled:opacity-50 text-sky-700 border border-sky-300 rounded-lg shadow-xs transition cursor-pointer"
+                        >
+                            <span x-show="!isCheckingQris">Cek Masuk</span>
+                            <span x-show="isCheckingQris">Memeriksa...</span>
+                        </button>
+                    </div>
+
+                    <!-- Match Alert Status -->
+                    <div x-show="totalAmount > 0">
+                        <template x-if="qrisMatched">
+                            <div class="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-xs flex items-center justify-between">
+                                <div>
+                                    <span class="block text-[10px] uppercase tracking-wider text-emerald-800 font-black">Uang Masuk Terverifikasi</span>
+                                    <span x-text="qrisMatchMessage"></span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-200 text-emerald-900 font-black text-[10px]">COCOK</span>
+                            </div>
+                        </template>
+                        <template x-if="!qrisMatched">
+                            <div class="p-2.5 rounded-xl bg-white/80 border border-sky-200 text-slate-600 text-[11px]">
+                                <div class="flex items-center justify-between font-semibold">
+                                    <span>Menunggu scan pembeli...</span>
+                                    <span class="font-mono text-slate-500" x-text="formatRupiah(totalAmount)"></span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 block mt-0.5" x-text="qrisMatchMessage || 'Minta pembeli scan QRIS, lalu klik tombol Cek Masuk.'"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Recent 3 incoming transactions -->
+                    <div class="pt-2 border-t border-sky-200/60 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Mutasi QRIS Terkini:</span>
+                        <template x-if="liveQrisList.length === 0">
+                            <div class="text-[11px] text-slate-400 italic">Belum ada transaksi QRIS masuk.</div>
+                        </template>
+                        <template x-for="item in liveQrisList.slice(0, 3)" :key="item.transaction_id">
+                            <div class="flex items-center justify-between text-[11px] bg-white/80 px-2 py-1.5 rounded-lg border border-sky-100">
+                                <div>
+                                    <strong class="text-slate-800" x-text="item.formatted_amount"></strong>
+                                    <span class="text-[10px] text-slate-400 ml-1" x-text="item.time_ago"></span>
+                                </div>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" x-text="item.status_label"></span>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -1079,8 +1245,12 @@
                             </div>
                             <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-blue-200 text-blue-900" x-text="(shiftSummary?.qris?.count || 0) + ' Transaksi'"></span>
                         </div>
-                        <p class="text-xs text-blue-800 mt-2 font-medium">
-                            Cocokkan dengan notifikasi riwayat transaksi di aplikasi QRIS stand.
+                        <div class="mt-2.5 pt-2 border-t border-blue-200/60 flex items-center justify-between text-xs text-blue-900">
+                            <span>Total Omset QRIS ShopeePay:</span>
+                            <strong class="font-bold text-sm" x-text="qrisTotalNetSales"></strong>
+                        </div>
+                        <p class="text-xs text-blue-800 mt-1 font-medium">
+                            Tersinkronisasi langsung dengan Shopee Partner (Stand GenBI).
                         </p>
                     </div>
 

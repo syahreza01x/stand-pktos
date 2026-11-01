@@ -86,6 +86,15 @@
                 <a href="{{ route('admin.activity-logs.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.activity-logs.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     Log Aktivitas
                 </a>
+                <div class="pt-3 pb-1 px-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Konfigurasi</div>
+
+                <a href="{{ route('admin.settings.qris') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.settings.qris') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Integrasi QRIS Shopee
+                </a>
+
+                <a href="{{ route('admin.settings.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.settings.index') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Portabilitas Server
+                </a>
             </nav>
 
             <!-- User Footer & Logout -->

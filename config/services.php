@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'shopeepay' => [
+        'cookie' => env('SHOPEEPAY_MERCHANT_COOKIE'),
+        'token' => env('SHOPEEPAY_METADATA_TOKEN'),
+        'endpoint' => env('SHOPEEPAY_ENDPOINT', 'https://shopeepay.shopee.co.id/merchant/v1/partner-web/get-transaction-list'),
+    ],
+
 ];

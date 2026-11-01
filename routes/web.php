@@ -7,12 +7,14 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ShiftController;
+use App\Http\Controllers\Admin\ShopeePaySettingController;
 use App\Http\Controllers\Admin\TransactionHistoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Cashier\CashierDashboardController;
 use App\Http\Controllers\Cashier\PersonalTransactionController;
 use App\Http\Controllers\Cashier\POSController;
+use App\Http\Controllers\Cashier\QRISVerificationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +83,11 @@ Route::prefix('admin')
         // System Settings
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings/clear-cache', [SettingController::class, 'clearCache'])->name('settings.clear-cache');
+
+        // ShopeePay QRIS Merchant Settings
+        Route::get('/settings/qris', [ShopeePaySettingController::class, 'index'])->name('settings.qris');
+        Route::post('/settings/qris', [ShopeePaySettingController::class, 'update'])->name('settings.qris.update');
+        Route::post('/settings/qris/test', [ShopeePaySettingController::class, 'test'])->name('settings.qris.test');
     });
 
 // Cashier Routes Group
@@ -92,4 +99,8 @@ Route::prefix('cashier')
         Route::get('/pos', [POSController::class, 'index'])->name('pos');
         Route::post('/pos', [POSController::class, 'store'])->name('pos.store');
         Route::get('/history', [PersonalTransactionController::class, 'index'])->name('history');
+
+        // Live ShopeePay QRIS Verification
+        Route::get('/qris/live-mutations', [QRISVerificationController::class, 'liveMutations'])->name('qris.live-mutations');
+        Route::post('/qris/check-match', [QRISVerificationController::class, 'checkMatch'])->name('qris.check-match');
     });

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Services\POSService;
+use App\Services\ShopeePayMerchantService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,8 @@ use Illuminate\View\View;
 class CashierDashboardController extends Controller
 {
     public function __construct(
-        protected POSService $posService
+        protected POSService $posService,
+        protected ShopeePayMerchantService $shopeePayService
     ) {}
 
     public function index(Request $request): View
@@ -60,12 +62,16 @@ class CashierDashboardController extends Controller
         $personalTodayTx = (clone $personalTodayQuery)->count();
         $personalTodayUnits = (int) (clone $personalTodayQuery)->sum('total_items');
 
+        // 6. Live ShopeePay merchant summary
+        $shopeePaySummary = $this->shopeePayService->fetchLiveTransactions(10);
+
         return view('cashier.dashboard', compact(
             'user',
             'activeShift',
             'viewedShift',
             'myShifts',
             'shiftSummary',
+            'shopeePaySummary',
             'personalTodayRevenue',
             'personalTodayTx',
             'personalTodayUnits'

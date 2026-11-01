@@ -109,9 +109,15 @@
                         </div>
                         <div class="text-xs text-slate-600 font-medium pt-1 border-t border-sky-100">
                             <strong>{{ $shiftSummary['qris']['count'] }}</strong> transaksi QRIS
-                            <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
-                                Cocokkan dengan notifikasi/riwayat aplikasi QRIS stand.
-                            </span>
+                            @if ($shopeePaySummary && ($shopeePaySummary['success'] ?? false))
+                                <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
+                                    Omset ShopeePay (Stand GenBI): <strong>{{ $shopeePaySummary['formatted_total_net_sales'] }}</strong>
+                                </span>
+                            @else
+                                <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
+                                    Cocokkan dengan notifikasi/riwayat aplikasi QRIS stand.
+                                </span>
+                            @endif
                         </div>
                     </div>
 
@@ -136,6 +142,33 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Live Feed Mutasi Masuk ShopeePay (Stand GenBI) -->
+                @if ($shopeePaySummary && !empty($shopeePaySummary['transactions']))
+                    <div class="p-4 rounded-xl border border-sky-200 bg-sky-50/50 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase text-sky-950 tracking-wider">
+                                Mutasi Masuk QRIS ShopeePay Terakhir (Stand GenBI)
+                            </span>
+                            <span class="text-[10px] text-sky-700 font-bold">
+                                Sinkronisasi Otomatis • {{ $shopeePaySummary['fetched_at'] ?? '' }}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            @foreach (array_slice($shopeePaySummary['transactions'], 0, 3) as $tx)
+                                <div class="bg-white p-2.5 rounded-lg border border-sky-100 text-xs flex justify-between items-center shadow-2xs">
+                                    <div>
+                                        <span class="font-black text-slate-900 block text-xs">{{ $tx['formatted_amount'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $tx['time_ago'] }}</span>
+                                    </div>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                        {{ $tx['status_label'] }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Total Hari/Shift Bar -->
                 <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">

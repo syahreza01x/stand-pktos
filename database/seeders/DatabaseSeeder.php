@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\EventDay;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\ShiftAssignment;
 use App\Models\User;
@@ -253,5 +254,22 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+
+        // 5. ShopeePay Merchant (Shopee Partner) Initial Settings
+        Setting::updateOrCreate(
+            ['key' => 'shopeepay_cookie'],
+            [
+                'value' => 'SPC_F=kpLhv3xlWqaPOPpi2V7pw1vkb7jviwR3; REC_T_ID=de368605-323a-11f1-bdbf-b28af8d2aaaf; _ga=GA1.1.1107439150.1775536379; language=id; SPC_CLIENTID=a3BMaHYzeGxXcWFQfmspsirriwdjlnid; SPC_EC=-; _gcl_au=1.1.732674978.1792399734; _med=refer; _fbp=fb.2.1792399735967.26103651953017647; SPC_ST=q30Vyb3xH/xWwqoJZNZS3kj1hR/28QEJ7fVgL8xd/fMUUIOvCILWpxL+riFwtX4rdwPJAFl+tMtkOJb7IZics13HysKR2W2oqYami4ixaI8xx8YWY456bLkhUIwJpTByGxaKQFe3xHmPhTN7kucTVGNMTill8BItj/RWRzmiJ/M2vrEsf0+6fhcztd5G8lhjggUX3zjqs4qMyTbMbLK/RasXPUGAdgveu7gMr7QnJpU=.ACKd7jBGEqAnyvk4SVNy+59rdQssNH5Ru7QeONPnV59H; SPC_U=16147324838; SPC_R_T_ID=fjQDdZbtDT7Fuy09o4HkKDnznW9Bf9Yb7HIBe4OVKiPoYTt9b1JoTTzG6wG6Ln93fOjY0hDTiadi/ZOHY0cXq0mDyGB9Plbqgd72OHpao+YLQVWPC48rE+ePFzZydbG8aSpwLwmWdFSFgl6CtT5INjrnZbwRzc+i6zTjegSI5jI=; SPC_R_T_IV=eFdvTWNsZlp5Mk4zbklReA==; SPC_T_ID=fjQDdZbtDT7Fuy09o4HkKDnznW9Bf9Yb7HIBe4OVKiPoYTt9b1JoTTzG6wG6Ln93fOjY0hDTiadi/ZOHY0cXq0mDyGB9Plbqgd72OHpao+YLQVWPC48rE+ePFzZydbG8aSpwLwmWdFSFgl6CtT5INjrnZbwRzc+i6zTjegSI5jI=; SPC_T_IV=eFdvTWNsZlp5Mk4zbklReA==; _ga_SW6D8G0HXK=GS2.1.s1792399736$o4$g1$t1792400048$j1$l1$h1753050467; __shopee_partner_website_x_token_live=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiIxNDkzNzEwMzg3NSIsInJlZ2lvbiI6IklEIiwiYnVzaW5lc3NJZCI6MSwidG9rZW4iOiJCOkVINlhTRTdIVy8rc0F5bmUrWmRmd3FQR0VUS3pvbDFSblZ6bE1lcjRCMG9rc2JVWGEvSU5RejczYThkeGt3eEtoalk1QWxWandKNzNqUndwbmRKRU1WOTg3UHNPTmFMc29HT1AyVnc4ZVF1am83RVV5T1JLZGo0SnRaZ1Y5dU5FVXFvdzNlVEp5bmtyQ1BLc3ZmOEpqZ1gxVitCV1FkTmsxWEhKWXduS0FFcit2aGNtUFpyOTVyTE5RYWFsZmNOT2ttYXpmYjdPbjVyc0U4N0EzNzRVLzNkYk1VS3Jva1piaHBReHhwST0iLCJlcnJvck1zZyI6IiIsImVycm9yQ29kZSI6MCwiaWF0IjoxNzkzNTM1NzUyLCJleHAiOjE4Nzk5MzU3NTJ9.jWcQBBUjbVV7eJ-nvU2qMTRi20mWBaVsBd3HZTgYmM-p9Vwne_z8SHHtJH0SnbNGo95dyeTNB4VuFnW6K9sdsik1D_TCLmH0W-wHzEkaBammilPwUO1PNGCQkGIkCsuUi53PwNz_qboM0xg_GiacYRIuFdId5EvftXpurWiz6H8',
+                'description' => 'Session Cookie ShopeePay Merchant (Shopee Partner)',
+            ]
+        );
+
+        Setting::updateOrCreate(
+            ['key' => 'shopeepay_token'],
+            [
+                'value' => 'B:EH6XSE7HW/+sAyne+ZdfwqPGETKzol1RnVzlMer4B0oksbUXa/INQz73a8dxkwxKhjY5AlVjwJ73jRwpndJEMV987PsONaLsoGOP2Vw8eQujo7EUyORKdj4JtZgV9uNEUqow3eTJynkrCPKsvf8JjgX1V+BWQdNk1XHJYwnKAEr+vhcmPZr95rLNQaalfcNOkmazfb7On5rsE87A374U/3dbMUKrokZbhpQxxpI=',
+                'description' => 'Metadata Token ShopeePay Merchant (Shopee Partner)',
+            ]
+        );
     }
 }
