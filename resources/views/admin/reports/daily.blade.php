@@ -1,15 +1,15 @@
 <x-layouts.app>
     <x-slot:title>Laporan Shift & Harian</x-slot:title>
-    <x-slot:header>Laporan Rincian Shift 1, Shift 2, & Total Harian</x-slot:header>
+    <x-slot:header>Laporan Rincian Shift & Harian</x-slot:header>
 
-    <div class="space-y-4" x-data="{ activeTab: 'total' }">
+    <div class="space-y-6" x-data="{ activeTab: 'total' }">
         <!-- Day Selector & Export Header -->
-        <div class="bg-white rounded-lg border border-zinc-200 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
                 @foreach ($eventDays as $d)
                     <a 
                         href="{{ route('admin.reports.daily', ['event_day_id' => $d->id]) }}"
-                        class="px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap {{ $activeDay->id === $d->id ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200' }}"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition duration-150 {{ $activeDay->id === $d->id ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
                     >
                         Hari {{ $d->day_name }}
                     </a>
@@ -18,50 +18,52 @@
 
             <a 
                 href="{{ route('admin.reports.export-daily', $activeDay) }}"
-                class="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded transition text-center"
+                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs text-center flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             >
-                Download Excel (Hari {{ $activeDay->day_name }})
+                <span>📊</span>
+                <span>Download Excel (Hari {{ $activeDay->day_name }})</span>
             </a>
         </div>
 
         <!-- Day Overview & Tabs -->
-        <div class="bg-white rounded-lg border border-zinc-200 p-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 pb-3">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                    <h2 class="text-base font-bold text-zinc-900">Hari {{ $activeDay->day_name }} ({{ $activeDay->event_date->format('l, d F Y') }})</h2>
-                    <span class="text-xs text-zinc-500">{{ $dailyReport['daily_total']['transaction_count'] }} Transaksi Terproses</span>
+                    <span class="inline-block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Laporan Penjualan</span>
+                    <h2 class="text-base sm:text-lg font-black text-slate-900">Hari {{ $activeDay->day_name }} ({{ $activeDay->event_date->format('l, d F Y') }})</h2>
+                    <span class="text-xs text-slate-500 font-medium">{{ $dailyReport['daily_total']['transaction_count'] }} Transaksi Terproses</span>
                 </div>
-                <div class="sm:text-right">
-                    <span class="text-[11px] text-zinc-400 block uppercase tracking-wider font-semibold">Total Pendapatan Harian</span>
-                    <span class="text-xl font-bold text-zinc-900">
+                <div class="sm:text-right bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-xl">
+                    <span class="text-[10px] text-slate-400 block uppercase tracking-wider font-bold">Total Omzet Harian</span>
+                    <span class="text-xl sm:text-2xl font-black text-emerald-700">
                         Rp{{ number_format($dailyReport['daily_total']['total_revenue'], 0, ',', '.') }}
                     </span>
                 </div>
             </div>
 
             <!-- Tabs -->
-            <div class="flex items-center gap-1.5 mt-3 text-xs">
+            <div class="flex items-center gap-2 overflow-x-auto text-xs font-bold pb-1 sm:pb-0">
                 <button 
                     type="button" 
                     @click="activeTab = 'total'"
-                    :class="activeTab === 'total' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                    class="px-3 py-1.5 rounded transition"
+                    :class="activeTab === 'total' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-4 py-2 rounded-xl transition cursor-pointer whitespace-nowrap"
                 >
-                    Total Harian (Shift 1 + Shift 2)
+                    Total Harian (Shift 1 + 2)
                 </button>
                 <button 
                     type="button" 
                     @click="activeTab = 'shift1'"
-                    :class="activeTab === 'shift1' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                    class="px-3 py-1.5 rounded transition"
+                    :class="activeTab === 'shift1' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-4 py-2 rounded-xl transition cursor-pointer whitespace-nowrap"
                 >
                     Shift 1 (Pagi)
                 </button>
                 <button 
                     type="button" 
                     @click="activeTab = 'shift2'"
-                    :class="activeTab === 'shift2' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                    class="px-3 py-1.5 rounded transition"
+                    :class="activeTab === 'shift2' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="px-4 py-2 rounded-xl transition cursor-pointer whitespace-nowrap"
                 >
                     Shift 2 (Sore)
                 </button>
@@ -69,47 +71,51 @@
         </div>
 
         <!-- 1. Total Harian (Shift 1 + Shift 2) -->
-        <div x-show="activeTab === 'total'" class="space-y-3">
-            <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
-                <div class="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200">
-                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-700">Tabel Rekap Penjualan 6 Produk (Shift 1 + Shift 2)</span>
+        <div x-show="activeTab === 'total'" class="space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                    <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Tabel Rekap Penjualan 6 Produk (Shift 1 + Shift 2)</h3>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-400 uppercase text-[10px] font-semibold">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold">
                             <tr>
-                                <th class="py-2 px-3">No</th>
-                                <th class="py-2 px-3">Nama Produk</th>
-                                <th class="py-2 px-3">Kategori</th>
-                                <th class="py-2 px-3 text-right">Harga Satuan (Rp)</th>
-                                <th class="py-2 px-3 text-center">Qty Shift 1</th>
-                                <th class="py-2 px-3 text-center">Qty Shift 2</th>
-                                <th class="py-2 px-3 text-center font-bold">Total Qty</th>
-                                <th class="py-2 px-3 text-right">Subtotal Omzet (Rp)</th>
+                                <th class="py-3 px-4">No</th>
+                                <th class="py-3 px-4">Nama Produk</th>
+                                <th class="py-3 px-4">Kategori</th>
+                                <th class="py-3 px-4 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 text-center">Qty Shift 1</th>
+                                <th class="py-3 px-4 text-center">Qty Shift 2</th>
+                                <th class="py-3 px-4 text-center font-bold">Total Qty</th>
+                                <th class="py-3 px-4 text-right">Subtotal Omzet</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-zinc-100">
+                        <tbody class="divide-y divide-slate-100">
                             @foreach ($dailyReport['daily_total']['items'] as $idx => $it)
-                                <tr class="hover:bg-zinc-50">
-                                    <td class="py-2 px-3 text-zinc-400 font-mono">{{ $idx + 1 }}</td>
-                                    <td class="py-2 px-3 font-semibold text-zinc-900">{{ $it['product_name'] }}</td>
-                                    <td class="py-2 px-3 text-zinc-500">{{ $it['category'] }}</td>
-                                    <td class="py-2 px-3 text-right text-zinc-700">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
-                                    <td class="py-2 px-3 text-center text-zinc-700">{{ $it['quantity_s1'] }}</td>
-                                    <td class="py-2 px-3 text-center text-zinc-700">{{ $it['quantity_s2'] }}</td>
-                                    <td class="py-2 px-3 text-center font-bold text-zinc-900">{{ $it['total_quantity'] }}</td>
-                                    <td class="py-2 px-3 text-right font-bold text-zinc-900">Rp{{ number_format($it['total_subtotal'], 0, ',', '.') }}</td>
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-2.5 px-4 text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                                    <td class="py-2.5 px-4 font-bold text-slate-900">{{ $it['product_name'] }}</td>
+                                    <td class="py-2.5 px-4">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold {{ $it['category'] === 'Makanan' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800' }}">
+                                            {{ $it['category'] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5 px-4 text-right text-slate-700 font-medium">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
+                                    <td class="py-2.5 px-4 text-center text-slate-700 font-semibold">{{ $it['quantity_s1'] }}</td>
+                                    <td class="py-2.5 px-4 text-center text-slate-700 font-semibold">{{ $it['quantity_s2'] }}</td>
+                                    <td class="py-2.5 px-4 text-center font-black text-slate-900 bg-slate-50">{{ $it['total_quantity'] }}</td>
+                                    <td class="py-2.5 px-4 text-right font-black text-slate-900">Rp{{ number_format($it['total_subtotal'], 0, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="border-t-2 border-zinc-200 bg-zinc-50 font-bold text-xs">
+                        <tfoot class="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-xs">
                             <tr>
-                                <td colspan="4" class="py-2.5 px-3 text-right uppercase text-[11px] text-zinc-500">GRAND TOTAL HARI INI:</td>
-                                <td class="py-2.5 px-3 text-center text-zinc-800">{{ $dailyReport['shift1']['total_quantity'] ?? 0 }}</td>
-                                <td class="py-2.5 px-3 text-center text-zinc-800">{{ $dailyReport['shift2']['total_quantity'] ?? 0 }}</td>
-                                <td class="py-2.5 px-3 text-center font-black text-zinc-900">{{ $dailyReport['daily_total']['total_quantity'] }} unit</td>
-                                <td class="py-2.5 px-3 text-right font-black text-sm text-zinc-900">
+                                <td colspan="4" class="py-3 px-4 text-right uppercase text-[11px] text-slate-500">GRAND TOTAL HARI INI:</td>
+                                <td class="py-3 px-4 text-center text-slate-800 font-black">{{ $dailyReport['shift1']['total_quantity'] ?? 0 }}</td>
+                                <td class="py-3 px-4 text-center text-slate-800 font-black">{{ $dailyReport['shift2']['total_quantity'] ?? 0 }}</td>
+                                <td class="py-3 px-4 text-center font-black text-slate-900 bg-slate-100">{{ $dailyReport['daily_total']['total_quantity'] }} unit</td>
+                                <td class="py-3 px-4 text-right font-black text-sm sm:text-base text-emerald-800">
                                     Rp{{ number_format($dailyReport['daily_total']['total_revenue'], 0, ',', '.') }}
                                 </td>
                             </tr>
@@ -120,42 +126,42 @@
         </div>
 
         <!-- 2. Shift 1 Detail -->
-        <div x-show="activeTab === 'shift1'" class="space-y-3" style="display: none;">
-            <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
-                <div class="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
-                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-700">Rincian Shift 1 (Pagi)</span>
-                    <span class="text-xs text-zinc-500">{{ $dailyReport['shift1']['transaction_count'] ?? 0 }} Transaksi</span>
+        <div x-show="activeTab === 'shift1'" class="space-y-4" style="display: none;">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Rincian Shift 1 (Pagi)</h3>
+                    <span class="text-xs text-slate-500 font-medium">{{ $dailyReport['shift1']['transaction_count'] ?? 0 }} Transaksi</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-400 uppercase text-[10px] font-semibold">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold">
                             <tr>
-                                <th class="py-2 px-3">No</th>
-                                <th class="py-2 px-3">Nama Produk</th>
-                                <th class="py-2 px-3 text-right">Harga Satuan (Rp)</th>
-                                <th class="py-2 px-3 text-center">Jumlah Terjual</th>
-                                <th class="py-2 px-3 text-right">Total Penjualan (Rp)</th>
+                                <th class="py-3 px-4">No</th>
+                                <th class="py-3 px-4">Nama Produk</th>
+                                <th class="py-3 px-4 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 text-center">Jumlah Terjual</th>
+                                <th class="py-3 px-4 text-right">Total Penjualan</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-zinc-100">
+                        <tbody class="divide-y divide-slate-100">
                             @if (!empty($dailyReport['shift1']['items']))
                                 @foreach ($dailyReport['shift1']['items'] as $idx => $it)
-                                    <tr class="hover:bg-zinc-50">
-                                        <td class="py-2 px-3 text-zinc-400 font-mono">{{ $idx + 1 }}</td>
-                                        <td class="py-2 px-3 font-semibold text-zinc-900">{{ $it['product_name'] }}</td>
-                                        <td class="py-2 px-3 text-right text-zinc-700">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
-                                        <td class="py-2 px-3 text-center font-bold text-zinc-800">{{ $it['quantity'] }} unit</td>
-                                        <td class="py-2 px-3 text-right font-bold text-zinc-900">Rp{{ number_format($it['subtotal'], 0, ',', '.') }}</td>
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-2.5 px-4 text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                                        <td class="py-2.5 px-4 font-bold text-slate-900">{{ $it['product_name'] }}</td>
+                                        <td class="py-2.5 px-4 text-right text-slate-700 font-medium">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
+                                        <td class="py-2.5 px-4 text-center font-black text-slate-900">{{ $it['quantity'] }} unit</td>
+                                        <td class="py-2.5 px-4 text-right font-black text-slate-900">Rp{{ number_format($it['subtotal'], 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             @endif
                         </tbody>
-                        <tfoot class="border-t-2 border-zinc-200 bg-zinc-50 font-bold text-xs">
+                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 font-bold text-xs">
                             <tr>
-                                <td colspan="3" class="py-2.5 px-3 text-right uppercase text-[11px] text-zinc-500">TOTAL SHIFT 1:</td>
-                                <td class="py-2.5 px-3 text-center font-black text-zinc-900">{{ $dailyReport['shift1']['total_quantity'] ?? 0 }} unit</td>
-                                <td class="py-2.5 px-3 text-right font-black text-sm text-zinc-900">
+                                <td colspan="3" class="py-3 px-4 text-right uppercase text-[11px] text-slate-500">TOTAL SHIFT 1:</td>
+                                <td class="py-3 px-4 text-center font-black text-slate-900">{{ $dailyReport['shift1']['total_quantity'] ?? 0 }} unit</td>
+                                <td class="py-3 px-4 text-right font-black text-sm text-emerald-800">
                                     Rp{{ number_format($dailyReport['shift1']['total_revenue'] ?? 0, 0, ',', '.') }}
                                 </td>
                             </tr>
@@ -166,42 +172,42 @@
         </div>
 
         <!-- 3. Shift 2 Detail -->
-        <div x-show="activeTab === 'shift2'" class="space-y-3" style="display: none;">
-            <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
-                <div class="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
-                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-700">Rincian Shift 2 (Sore)</span>
-                    <span class="text-xs text-zinc-500">{{ $dailyReport['shift2']['transaction_count'] ?? 0 }} Transaksi</span>
+        <div x-show="activeTab === 'shift2'" class="space-y-4" style="display: none;">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Rincian Shift 2 (Sore)</h3>
+                    <span class="text-xs text-slate-500 font-medium">{{ $dailyReport['shift2']['transaction_count'] ?? 0 }} Transaksi</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-400 uppercase text-[10px] font-semibold">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold">
                             <tr>
-                                <th class="py-2 px-3">No</th>
-                                <th class="py-2 px-3">Nama Produk</th>
-                                <th class="py-2 px-3 text-right">Harga Satuan (Rp)</th>
-                                <th class="py-2 px-3 text-center">Jumlah Terjual</th>
-                                <th class="py-2 px-3 text-right">Total Penjualan (Rp)</th>
+                                <th class="py-3 px-4">No</th>
+                                <th class="py-3 px-4">Nama Produk</th>
+                                <th class="py-3 px-4 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 text-center">Jumlah Terjual</th>
+                                <th class="py-3 px-4 text-right">Total Penjualan</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-zinc-100">
+                        <tbody class="divide-y divide-slate-100">
                             @if (!empty($dailyReport['shift2']['items']))
                                 @foreach ($dailyReport['shift2']['items'] as $idx => $it)
-                                    <tr class="hover:bg-zinc-50">
-                                        <td class="py-2 px-3 text-zinc-400 font-mono">{{ $idx + 1 }}</td>
-                                        <td class="py-2 px-3 font-semibold text-zinc-900">{{ $it['product_name'] }}</td>
-                                        <td class="py-2 px-3 text-right text-zinc-700">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
-                                        <td class="py-2 px-3 text-center font-bold text-zinc-800">{{ $it['quantity'] }} unit</td>
-                                        <td class="py-2 px-3 text-right font-bold text-zinc-900">Rp{{ number_format($it['subtotal'], 0, ',', '.') }}</td>
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-2.5 px-4 text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                                        <td class="py-2.5 px-4 font-bold text-slate-900">{{ $it['product_name'] }}</td>
+                                        <td class="py-2.5 px-4 text-right text-slate-700 font-medium">Rp{{ number_format($it['unit_price'], 0, ',', '.') }}</td>
+                                        <td class="py-2.5 px-4 text-center font-black text-slate-900">{{ $it['quantity'] }} unit</td>
+                                        <td class="py-2.5 px-4 text-right font-black text-slate-900">Rp{{ number_format($it['subtotal'], 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             @endif
                         </tbody>
-                        <tfoot class="border-t-2 border-zinc-200 bg-zinc-50 font-bold text-xs">
+                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 font-bold text-xs">
                             <tr>
-                                <td colspan="3" class="py-2.5 px-3 text-right uppercase text-[11px] text-zinc-500">TOTAL SHIFT 2:</td>
-                                <td class="py-2.5 px-3 text-center font-black text-zinc-900">{{ $dailyReport['shift2']['total_quantity'] ?? 0 }} unit</td>
-                                <td class="py-2.5 px-3 text-right font-black text-sm text-zinc-900">
+                                <td colspan="3" class="py-3 px-4 text-right uppercase text-[11px] text-slate-500">TOTAL SHIFT 2:</td>
+                                <td class="py-3 px-4 text-center font-black text-slate-900">{{ $dailyReport['shift2']['total_quantity'] ?? 0 }} unit</td>
+                                <td class="py-3 px-4 text-right font-black text-sm text-emerald-800">
                                     Rp{{ number_format($dailyReport['shift2']['total_revenue'] ?? 0, 0, ',', '.') }}
                                 </td>
                             </tr>

@@ -1,32 +1,35 @@
 <x-layouts.guest>
     <x-slot:title>Masuk ke Sistem</x-slot:title>
 
-    <div class="bg-white p-6 sm:p-8 rounded-xl border border-zinc-200" x-data="{
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-xl space-y-6" x-data="{
         fillCreds(login, pass) {
             $refs.loginInput.value = login;
             $refs.passwordInput.value = pass;
         }
     }">
         <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-xl font-bold tracking-tight text-zinc-900">STAND PKTOS</h1>
-            <p class="text-xs text-zinc-500 mt-1">Sistem Pencatatan Penjualan Stand Acara</p>
+        <div class="text-center sm:text-left">
+            <span class="inline-block text-[10px] uppercase font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md mb-2 tracking-wider">
+                Event Sales Stand System
+            </span>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900">STAND PKTOS</h1>
+            <p class="text-xs text-slate-500 mt-1">Sistem Pencatatan & Manajemen Penjualan Stand</p>
         </div>
 
         @if (session('status'))
-            <div class="mb-4 p-3 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-800 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs font-medium">
                 {{ session('status') }}
             </div>
         @endif
 
         @if (session('success'))
-            <div class="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
                 {{ session('success') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+            <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
                 <div class="font-bold mb-1">Gagal masuk:</div>
                 <ul class="list-disc list-inside space-y-0.5">
                     @foreach ($errors->all() as $error)
@@ -40,7 +43,7 @@
             @csrf
 
             <div>
-                <label for="login" class="block text-xs font-semibold text-zinc-700 mb-1">Username atau Email</label>
+                <label for="login" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Username atau Email</label>
                 <input 
                     type="text" 
                     id="login" 
@@ -50,12 +53,12 @@
                     required 
                     autofocus
                     placeholder="misal: admin atau budi"
-                    class="w-full px-3 py-2 rounded-lg border border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-xs sm:text-sm"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
                 >
             </div>
 
             <div>
-                <label for="password" class="block text-xs font-semibold text-zinc-700 mb-1">Password</label>
+                <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
                 <input 
                     type="password" 
                     id="password" 
@@ -63,47 +66,47 @@
                     x-ref="passwordInput"
                     required 
                     placeholder="••••••••"
-                    class="w-full px-3 py-2 rounded-lg border border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 text-xs sm:text-sm"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
                 >
             </div>
 
             <div class="flex items-center text-xs">
-                <label class="flex items-center gap-2 cursor-pointer select-none text-zinc-600">
-                    <input type="checkbox" name="remember" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
-                    <span>Ingat sesi saya</span>
+                <label class="flex items-center gap-2 cursor-pointer select-none text-slate-600 font-medium">
+                    <input type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span>Ingat sesi saya di perangkat ini</span>
                 </label>
             </div>
 
             <button 
                 type="submit" 
-                class="w-full py-2.5 px-4 bg-zinc-900 hover:bg-black text-white font-semibold rounded-lg transition duration-150 text-xs sm:text-sm cursor-pointer"
+                class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-xl shadow-xs transition duration-150 text-sm cursor-pointer"
             >
-                Masuk
+                Masuk ke Aplikasi
             </button>
         </form>
 
         <!-- Quick Credentials for fast multi-device testing -->
-        <div class="mt-6 pt-4 border-t border-zinc-100">
-            <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-2">Akun Pengujian Cepat:</span>
+        <div class="pt-4 border-t border-slate-100">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Akun Pengujian Cepat:</span>
             <div class="grid grid-cols-2 gap-2 text-xs">
                 <button 
                     type="button" 
                     @click="fillCreds('admin', 'password123')"
-                    class="p-2 text-left rounded border border-zinc-200 hover:bg-zinc-50 transition text-zinc-700"
+                    class="p-2.5 text-left rounded-xl border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition cursor-pointer"
                 >
-                    <div class="font-bold text-zinc-900">Admin Stand</div>
-                    <div class="text-[11px] text-zinc-500">user: admin</div>
+                    <div class="font-bold text-slate-900">Admin Stand</div>
+                    <div class="text-[11px] text-slate-400 font-mono">user: admin</div>
                 </button>
                 <button 
                     type="button" 
                     @click="fillCreds('budi', 'password123')"
-                    class="p-2 text-left rounded border border-zinc-200 hover:bg-zinc-50 transition text-zinc-700"
+                    class="p-2.5 text-left rounded-xl border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition cursor-pointer"
                 >
-                    <div class="font-bold text-zinc-900">Kasir (Budi)</div>
-                    <div class="text-[11px] text-zinc-500">user: budi</div>
+                    <div class="font-bold text-slate-900">Kasir (Budi)</div>
+                    <div class="text-[11px] text-slate-400 font-mono">user: budi</div>
                 </button>
             </div>
-            <p class="text-[11px] text-zinc-400 text-center mt-2">Password: <code class="text-zinc-600 font-mono">password123</code></p>
+            <p class="text-[11px] text-slate-400 text-center mt-2.5">Password default: <code class="text-slate-600 font-mono font-semibold">password123</code></p>
         </div>
     </div>
 </x-layouts.guest>

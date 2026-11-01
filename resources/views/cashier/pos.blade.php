@@ -10,6 +10,7 @@
             notes: '',
             isSubmitting: false,
             showReceiptModal: false,
+            showMobileCheckout: false,
             completedTx: null,
             idempotencyKey: '',
 
@@ -46,6 +47,7 @@
             clearCart() {
                 this.cart = {};
                 this.notes = '';
+                this.showMobileCheckout = false;
                 this.generateIdempotencyKey();
             },
 
@@ -96,6 +98,7 @@
 
                     if (response.ok && result.success) {
                         this.completedTx = result.data;
+                        this.showMobileCheckout = false;
                         this.showReceiptModal = true;
                         this.clearCart();
                     } else {
@@ -110,134 +113,169 @@
         }"
         class="space-y-4"
     >
-        <!-- Active Shift Header -->
-        <div class="bg-white rounded-lg p-3 border border-zinc-200 flex items-center justify-between text-xs">
+        <!-- Shift Aktif Info Bar -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
             <div>
-                <span class="text-zinc-500 font-medium">Shift Aktif:</span>
-                <strong class="text-zinc-900 ml-1">Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }} ({{ $activeShift->name }})</strong>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Shift Berjalan:</span>
+                <div class="font-bold text-slate-900 text-sm mt-0.5">
+                    Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }}
+                </div>
+                <div class="text-xs text-slate-500">{{ $activeShift->name }}</div>
             </div>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                OPEN
+
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Shift Open
             </span>
         </div>
 
-        <!-- POS Workspace -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-            
-            <!-- Products Catalog (Left/Top) -->
-            <div class="md:col-span-7 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-500">Pilih Barang:</span>
-                    <span class="text-xs text-zinc-400">{{ $products->count() }} Produk</span>
-                </div>
+        <!-- Section Header -->
+        <div class="flex items-center justify-between px-1">
+            <h2 class="font-bold text-sm sm:text-base text-slate-900">Pilih Barang:</h2>
+            <span class="text-xs text-slate-500 font-medium">{{ $products->count() }} Produk Stand</span>
+        </div>
 
-                <!-- Products Grid -->
-                <div class="grid grid-cols-2 gap-2.5">
+        <!-- Products Grid & Desktop Cart Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- Products Grid (Left on Desktop, Full on Mobile) -->
+            <div class="lg:col-span-7 xl:col-span-8">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
                     <template x-for="product in products" :key="product.id">
                         <div 
-                            @click="addToCart(product)"
-                            class="bg-white p-3 rounded-lg border border-zinc-200 hover:border-zinc-400 transition cursor-pointer select-none flex flex-col justify-between relative"
-                            :class="cart[product.id] ? 'ring-1 ring-zinc-900' : ''"
+                            class="bg-white p-3.5 sm:p-4 rounded-2xl border transition duration-150 flex flex-col justify-between select-none relative shadow-xs"
+                            :class="cart[product.id] && cart[product.id].quantity > 0 ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200 hover:border-slate-300'"
                         >
-                            <!-- Quantity count badge -->
-                            <div 
-                                x-show="cart[product.id] && cart[product.id].quantity > 0"
-                                class="absolute top-2 right-2 bg-zinc-900 text-white font-bold text-[10px] px-1.5 py-0.5 rounded"
-                                x-text="cart[product.id] ? cart[product.id].quantity : ''"
-                            ></div>
-
+                            <!-- Card Header: Category & Name -->
                             <div>
-                                <span class="text-[10px] uppercase text-zinc-400 font-semibold block" x-text="product.category"></span>
-                                <h3 class="font-bold text-xs sm:text-sm text-zinc-900 mt-0.5 leading-snug" x-text="product.name"></h3>
+                                <span 
+                                    class="inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-md mb-2"
+                                    :class="product.category === 'Makanan' ? 'bg-amber-100 text-amber-800' : (product.category === 'Minuman' ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-700')"
+                                    x-text="product.category"
+                                ></span>
+
+                                <h3 class="font-bold text-xs sm:text-sm text-slate-900 leading-snug line-clamp-2" x-text="product.name"></h3>
                             </div>
 
-                            <div class="mt-3 pt-2 border-t border-zinc-100 flex items-center justify-between">
-                                <span class="font-bold text-xs text-zinc-900" x-text="formatRupiah(product.price)"></span>
-                                <span class="text-xs font-semibold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">+ Tambah</span>
+                            <!-- Card Footer: Price & Add/Stepper -->
+                            <div class="mt-4 pt-3 border-t border-slate-100">
+                                <div class="font-black text-sm sm:text-base text-slate-900 mb-2.5" x-text="formatRupiah(product.price)"></div>
+
+                                <!-- Dynamic Action: + Tambah or Interactive Stepper -->
+                                <template x-if="!cart[product.id] || cart[product.id].quantity === 0">
+                                    <button 
+                                        type="button" 
+                                        @click="addToCart(product)"
+                                        class="w-full py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600 font-bold text-xs transition duration-150 cursor-pointer text-center"
+                                    >
+                                        + Tambah
+                                    </button>
+                                </template>
+
+                                <template x-if="cart[product.id] && cart[product.id].quantity > 0">
+                                    <div class="flex items-center justify-between gap-1 bg-indigo-600 text-white rounded-xl p-1">
+                                        <button 
+                                            type="button" 
+                                            @click="decrementQuantity(product.id)"
+                                            class="w-7 h-7 rounded-lg bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer"
+                                        >
+                                            −
+                                        </button>
+                                        <span class="font-extrabold text-xs px-2 text-white" x-text="cart[product.id].quantity"></span>
+                                        <button 
+                                            type="button" 
+                                            @click="addToCart(product)"
+                                            class="w-7 h-7 rounded-lg bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <!-- Cart & Checkout Area (Right/Bottom) -->
-            <div class="md:col-span-5 bg-white rounded-lg border border-zinc-200 p-4 sticky top-16 space-y-3">
-                <div class="flex items-center justify-between pb-2 border-b border-zinc-200">
-                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-700">Keranjang Belanja</span>
+            <!-- Desktop Sticky Cart (Visible only on lg: screens) -->
+            <div class="hidden lg:block lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sticky top-20 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Keranjang Transaksi</h3>
+                        <span class="text-xs text-slate-500" x-text="totalItemsCount + ' item dipilih'"></span>
+                    </div>
                     <button 
                         type="button" 
                         @click="clearCart()" 
                         x-show="totalItemsCount > 0"
-                        class="text-xs text-rose-600 hover:underline"
+                        class="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
                     >
-                        Batal
+                        Kosongkan
                     </button>
                 </div>
 
                 <!-- Empty State -->
-                <div x-show="totalItemsCount === 0" class="py-8 text-center text-zinc-400 text-xs">
-                    Pilih produk untuk menambah transaksi.
+                <div x-show="totalItemsCount === 0" class="py-12 text-center text-slate-400 text-xs">
+                    Pilih produk di sebelah kiri untuk menambah ke transaksi.
                 </div>
 
                 <!-- Cart Items List -->
-                <div x-show="totalItemsCount > 0" class="divide-y divide-zinc-100 max-h-56 overflow-y-auto">
+                <div x-show="totalItemsCount > 0" class="divide-y divide-slate-100 max-h-60 overflow-y-auto pr-1">
                     <template x-for="item in cartItems" :key="item.id">
-                        <div class="py-2 flex items-center justify-between gap-2 text-xs">
+                        <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
                             <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-zinc-900 truncate" x-text="item.name"></div>
-                                <div class="text-[11px] text-zinc-400" x-text="formatRupiah(item.price) + ' × ' + item.quantity"></div>
+                                <div class="font-bold text-slate-900 truncate" x-text="item.name"></div>
+                                <div class="text-[11px] text-slate-500" x-text="formatRupiah(item.price) + ' × ' + item.quantity"></div>
                             </div>
 
-                            <!-- Stepper -->
                             <div class="flex items-center gap-1">
                                 <button 
                                     type="button" 
                                     @click="decrementQuantity(item.id)"
-                                    class="w-6 h-6 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold flex items-center justify-center text-xs"
+                                    class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     −
                                 </button>
-                                <span class="w-6 text-center font-bold text-xs text-zinc-900" x-text="item.quantity"></span>
+                                <span class="w-6 text-center font-bold text-xs text-slate-900" x-text="item.quantity"></span>
                                 <button 
                                     type="button" 
                                     @click="addToCart({ id: item.id, name: item.name, price: item.price })"
-                                    class="w-6 h-6 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold flex items-center justify-center text-xs"
+                                    class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center cursor-pointer"
                                 >
                                     +
                                 </button>
                             </div>
 
-                            <div class="w-16 text-right font-bold text-zinc-900" x-text="formatRupiah(item.price * item.quantity)"></div>
+                            <div class="w-20 text-right font-bold text-slate-900" x-text="formatRupiah(item.price * item.quantity)"></div>
                         </div>
                     </template>
                 </div>
 
-                <!-- Checkout Details -->
-                <div x-show="totalItemsCount > 0" class="pt-3 border-t border-zinc-200 space-y-3">
+                <!-- Desktop Checkout Form -->
+                <div x-show="totalItemsCount > 0" class="pt-3 border-t border-slate-200 space-y-3">
                     <div>
-                        <span class="block text-[11px] font-semibold text-zinc-600 mb-1">Metode Bayar:</span>
-                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                        <span class="block text-xs font-semibold text-slate-700 mb-1.5">Metode Bayar:</span>
+                        <div class="grid grid-cols-3 gap-1.5">
                             <button 
                                 type="button" 
                                 @click="paymentMethod = 'cash'"
-                                :class="paymentMethod === 'cash' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                                class="py-1.5 rounded text-center transition"
+                                :class="paymentMethod === 'cash' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
                                 Tunai
                             </button>
                             <button 
                                 type="button" 
                                 @click="paymentMethod = 'qris'"
-                                :class="paymentMethod === 'qris' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                                class="py-1.5 rounded text-center transition"
+                                :class="paymentMethod === 'qris' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
                                 QRIS
                             </button>
                             <button 
                                 type="button" 
                                 @click="paymentMethod = 'transfer'"
-                                :class="paymentMethod === 'transfer' ? 'bg-zinc-900 text-white font-bold' : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'"
-                                class="py-1.5 rounded text-center transition"
+                                :class="paymentMethod === 'transfer' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                                class="py-2 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
                             >
                                 Transfer
                             </button>
@@ -248,57 +286,185 @@
                         <input 
                             type="text" 
                             x-model="notes" 
-                            placeholder="Catatan transaksi (opsional)..."
-                            class="w-full px-2.5 py-1.5 text-xs rounded border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                            placeholder="Catatan pesanan (opsional)..."
+                            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         >
                     </div>
 
-                    <!-- Total & Pay -->
-                    <div class="p-3 rounded bg-zinc-50 border border-zinc-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-[11px] text-zinc-500 block">Total Tagihan</span>
-                            <span class="text-xs font-medium text-zinc-700" x-text="totalItemsCount + ' item'"></span>
-                        </div>
-                        <div class="text-lg font-black text-zinc-900" x-text="formatRupiah(totalAmount)"></div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                        <span class="text-xs text-slate-500 font-medium">Total Tagihan:</span>
+                        <span class="text-xl font-black text-indigo-700" x-text="formatRupiah(totalAmount)"></span>
                     </div>
 
                     <button 
                         type="button" 
                         @click="submitTransaction()"
                         :disabled="isSubmitting || totalItemsCount === 0"
-                        class="w-full py-2.5 bg-zinc-900 hover:bg-black disabled:bg-zinc-300 text-white font-bold rounded text-xs transition cursor-pointer"
+                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-xs"
                     >
-                        <span x-show="!isSubmitting">Simpan Transaksi</span>
-                        <span x-show="isSubmitting">Menyimpan...</span>
+                        <span x-show="!isSubmitting">Simpan Transaksi (Bayar)</span>
+                        <span x-show="isSubmitting">Memproses Transaksi...</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Minimalist Receipt Modal -->
+        <!-- MOBILE FLOATING CHECKOUT BAR (Solusi UX Terbaik untuk Layar HP) -->
         <div 
-            x-show="showReceiptModal" 
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            x-show="totalItemsCount > 0"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-4"
+            class="lg:hidden fixed bottom-16 inset-x-3 z-30"
             style="display: none;"
         >
-            <div class="bg-white rounded-xl max-w-sm w-full p-5 border border-zinc-200" @click.outside="showReceiptModal = false">
-                <div class="border-b border-zinc-200 pb-2 mb-3">
-                    <div class="font-bold text-sm text-zinc-900">Transaksi Berhasil Disimpan</div>
-                    <div class="text-[11px] text-zinc-500 font-mono" x-text="completedTx?.invoice_code"></div>
+            <div class="bg-slate-900 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between border border-slate-800">
+                <div class="pl-1">
+                    <span class="text-[11px] text-slate-400 block font-medium" x-text="totalItemsCount + ' item di keranjang'"></span>
+                    <div class="text-base font-black text-emerald-400" x-text="formatRupiah(totalAmount)"></div>
+                </div>
+
+                <button 
+                    type="button" 
+                    @click="showMobileCheckout = true"
+                    class="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                    <span>Bayar Sekarang</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MOBILE CHECKOUT BOTTOM DRAWER (Slide Up) -->
+        <div 
+            x-show="showMobileCheckout"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end"
+            style="display: none;"
+        >
+            <div 
+                class="bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto p-5 space-y-4 shadow-2xl"
+                @click.outside="showMobileCheckout = false"
+            >
+                <!-- Drawer Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900">Selesaikan Pembayaran</h3>
+                        <span class="text-xs text-slate-500" x-text="totalItemsCount + ' item belanja'"></span>
+                    </div>
+                    <button @click="showMobileCheckout = false" class="p-1.5 text-slate-400 hover:text-slate-700 text-sm font-bold">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Items Review -->
+                <div class="divide-y divide-slate-100 max-h-48 overflow-y-auto pr-1">
+                    <template x-for="item in cartItems" :key="item.id">
+                        <div class="py-2 flex items-center justify-between text-xs">
+                            <div>
+                                <div class="font-bold text-slate-900" x-text="item.name"></div>
+                                <div class="text-[11px] text-slate-500" x-text="formatRupiah(item.price) + ' × ' + item.quantity"></div>
+                            </div>
+                            <div class="font-bold text-slate-900" x-text="formatRupiah(item.price * item.quantity)"></div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Payment Method -->
+                <div>
+                    <span class="block text-xs font-semibold text-slate-700 mb-1.5">Pilih Metode Pembayaran:</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button 
+                            type="button" 
+                            @click="paymentMethod = 'cash'"
+                            :class="paymentMethod === 'cash' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
+                            class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
+                        >
+                            Tunai
+                        </button>
+                        <button 
+                            type="button" 
+                            @click="paymentMethod = 'qris'"
+                            :class="paymentMethod === 'qris' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
+                            class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
+                        >
+                            QRIS
+                        </button>
+                        <button 
+                            type="button" 
+                            @click="paymentMethod = 'transfer'"
+                            :class="paymentMethod === 'transfer' ? 'bg-indigo-600 text-white font-bold border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
+                            class="py-2.5 rounded-xl border text-xs font-medium text-center transition cursor-pointer"
+                        >
+                            Transfer
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <input 
+                        type="text" 
+                        x-model="notes" 
+                        placeholder="Catatan pesanan (opsional)..."
+                        class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <!-- Grand Total Card -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <span class="text-xs text-slate-600 font-semibold">Total Tagihan:</span>
+                    <span class="text-xl font-black text-indigo-700" x-text="formatRupiah(totalAmount)"></span>
+                </div>
+
+                <!-- Action Button -->
+                <button 
+                    type="button" 
+                    @click="submitTransaction()"
+                    :disabled="isSubmitting || totalItemsCount === 0"
+                    class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-md"
+                >
+                    <span x-show="!isSubmitting">Konfirmasi & Simpan Transaksi</span>
+                    <span x-show="isSubmitting">Menyimpan Transaksi...</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Receipt Modal -->
+        <div 
+            x-show="showReceiptModal" 
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+            style="display: none;"
+        >
+            <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl" @click.outside="showReceiptModal = false">
+                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold mb-3">
+                    ✓
+                </div>
+
+                <div class="text-center mb-4">
+                    <h3 class="font-bold text-lg text-slate-900">Transaksi Berhasil!</h3>
+                    <div class="text-xs text-indigo-700 font-mono font-bold mt-0.5" x-text="completedTx?.invoice_code"></div>
                 </div>
 
                 <!-- Receipt details -->
-                <div class="space-y-1.5 text-xs font-mono my-3 p-3 bg-zinc-50 rounded border border-zinc-200">
-                    <div class="flex justify-between text-zinc-500 text-[11px]">
+                <div class="space-y-2 text-xs font-mono my-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div class="flex justify-between text-slate-500 text-[11px]">
                         <span>Waktu:</span>
                         <span x-text="completedTx?.created_at"></span>
                     </div>
-                    <div class="flex justify-between text-zinc-500 text-[11px]">
+                    <div class="flex justify-between text-slate-500 text-[11px]">
                         <span>Metode:</span>
-                        <span class="font-bold text-zinc-800 uppercase" x-text="completedTx?.payment_method"></span>
+                        <span class="font-bold text-slate-800 uppercase" x-text="completedTx?.payment_method"></span>
                     </div>
 
-                    <div class="pt-2 border-t border-zinc-200 space-y-1">
+                    <div class="pt-2 border-t border-slate-200 space-y-1">
                         <template x-for="it in completedTx?.items" :key="it.name">
                             <div class="flex justify-between text-[11px]">
                                 <span class="truncate max-w-[170px]" x-text="it.name + ' × ' + it.quantity"></span>
@@ -307,23 +473,23 @@
                         </template>
                     </div>
 
-                    <div class="pt-2 border-t border-zinc-200 flex justify-between font-bold text-xs text-zinc-900">
+                    <div class="pt-2 border-t border-slate-300 flex justify-between font-bold text-sm text-slate-900">
                         <span>TOTAL:</span>
-                        <span x-text="completedTx?.formatted_total"></span>
+                        <span class="text-emerald-700" x-text="completedTx?.formatted_total"></span>
                     </div>
                 </div>
 
-                <div class="space-y-2 mt-4">
+                <div class="space-y-2 mt-5">
                     <button 
                         type="button" 
                         @click="showReceiptModal = false"
-                        class="w-full py-2 bg-zinc-900 hover:bg-black text-white font-bold rounded text-xs transition"
+                        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-sm"
                     >
                         + Transaksi Baru
                     </button>
                     <a 
                         href="{{ route('cashier.history') }}"
-                        class="block text-center w-full py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold rounded text-xs transition"
+                        class="block text-center w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
                     >
                         Lihat Riwayat Saya
                     </a>

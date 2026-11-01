@@ -1,8 +1,8 @@
 <x-layouts.app>
     <x-slot:title>Manajemen Shift</x-slot:title>
-    <x-slot:header>Kelola Shift 1, Shift 2, & Penugasan Petugas</x-slot:header>
+    <x-slot:header>Kelola Shift & Petugas</x-slot:header>
 
-    <div class="space-y-4" x-data="{
+    <div class="space-y-6" x-data="{
         showModal: false,
         shiftId: null,
         shiftNumber: '',
@@ -23,91 +23,128 @@
             this.showModal = true;
         }
     }">
-        <div class="p-3 rounded-lg bg-zinc-100 border border-zinc-200 text-xs text-zinc-700">
-            <strong>Petunjuk:</strong> Kasir hanya dapat mengakses POS dan menginput penjualan jika shift mereka berstatus <strong class="text-emerald-800">OPEN</strong>. Tekan <em>Buka Shift</em> saat stand mulai beroperasi, dan <em>Tutup Shift</em> saat sesi shift berakhir.
+        <!-- Roomy, Friendly Info Banner -->
+        <div class="rounded-2xl bg-blue-50/80 border border-blue-200/80 p-4 sm:p-5 text-blue-950 shadow-xs">
+            <div class="flex items-start gap-3">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0 mt-0.5">ℹ</span>
+                <div class="text-xs sm:text-sm leading-relaxed">
+                    <strong class="font-bold text-blue-900">Petunjuk Operasional Shift:</strong> Kasir hanya dapat mengakses POS dan menginput penjualan jika shift mereka berstatus <span class="inline-block px-2 py-0.5 rounded-md font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">OPEN</span>. Tekan tombol hijau <em>Buka Shift</em> saat stand mulai beroperasi, dan tombol merah <em>Tutup Shift</em> saat sesi shift berakhir.
+                </div>
+            </div>
         </div>
 
-        <div class="space-y-4">
+        <!-- Days & Shifts List -->
+        <div class="space-y-6">
             @foreach ($eventDays as $day)
-                <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
-                    <div class="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-xs uppercase text-zinc-900">Hari {{ $day->day_name }}</span>
-                            <span class="text-zinc-400 text-xs font-mono">({{ $day->event_date->format('d/m/Y') }})</span>
+                <div class="space-y-3">
+                    <!-- Day Section Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+                        <div class="flex items-center gap-2.5">
+                            <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Hari {{ $day->day_name }}</h2>
+                            <span class="text-xs font-mono font-medium text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                                {{ $day->event_date->format('d/m/Y') }}
+                            </span>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase {{ $day->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
-                            {{ $day->status }}
-                        </span>
+                        @if ($day->status === 'active')
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                HARI AKTIF
+                            </span>
+                        @else
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase text-[11px]">
+                                {{ $day->status }}
+                            </span>
+                        @endif
                     </div>
 
-                    <div class="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Shift Cards (No Clunky Nested Boxes) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach ($day->shifts as $shift)
-                            <div class="p-3 rounded border {{ $shift->isOpen() ? 'border-emerald-300 bg-emerald-50/20' : 'border-zinc-200 bg-white' }} flex flex-col justify-between space-y-3">
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <div class="font-bold text-xs text-zinc-900">
-                                            {{ $shift->shift_number }} <span class="text-zinc-500 font-normal">({{ $shift->name }})</span>
+                            <div class="rounded-2xl p-4 sm:p-5 transition duration-200 flex flex-col justify-between space-y-4 {{ $shift->isOpen() ? 'bg-gradient-to-br from-emerald-50/60 to-white border-2 border-emerald-400 shadow-md ring-4 ring-emerald-500/10' : ($shift->isClosed() ? 'bg-slate-50/80 border border-slate-200/90 shadow-xs' : 'bg-white border border-slate-200 shadow-xs hover:border-slate-300') }}">
+                                <div class="space-y-2.5">
+                                    <!-- Header: Shift Name & Status Badge -->
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div>
+                                            <h3 class="font-extrabold text-sm sm:text-base text-slate-900">
+                                                {{ $shift->shift_number }}
+                                            </h3>
+                                            <div class="text-xs text-slate-500 font-medium">
+                                                {{ $shift->name }}
+                                            </div>
                                         </div>
 
                                         @if ($shift->isOpen())
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                            <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                                 OPEN
                                             </span>
                                         @elseif ($shift->isClosed())
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-600">
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
                                                 CLOSED
                                             </span>
                                         @else
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-700">
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                                 SCHEDULED
                                             </span>
                                         @endif
                                     </div>
 
-                                    <div class="text-[11px] text-zinc-500 mt-1">
-                                        Jam: {{ substr($shift->start_time ?? '08:00', 0, 5) }} - {{ substr($shift->end_time ?? '12:00', 0, 5) }}
+                                    <!-- Operational Hours -->
+                                    <div class="text-xs font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50/80 px-2.5 py-1.5 rounded-xl border border-slate-100">
+                                        <span class="text-slate-400">🕒 Jam Kerja:</span>
+                                        <strong class="text-slate-800">{{ substr($shift->start_time ?? '08:00', 0, 5) }} — {{ substr($shift->end_time ?? '12:00', 0, 5) }} WIB</strong>
                                     </div>
 
-                                    <!-- Cashiers -->
-                                    <div class="mt-2 pt-2 border-t border-zinc-100">
-                                        <span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">Petugas:</span>
-                                        <div class="flex flex-wrap gap-1">
+                                    <!-- Cashiers Assigned Area -->
+                                    <div class="pt-2">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                                            Petugas Kasir On-Duty:
+                                        </span>
+                                        <div class="flex flex-wrap gap-1.5">
                                             @forelse ($shift->cashiers as $c)
-                                                <span class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 text-[11px] font-medium">
-                                                    {{ $c->name }}
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-slate-800 text-xs font-semibold transition">
+                                                    <span class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                                        {{ substr($c->name, 0, 1) }}
+                                                    </span>
+                                                    <span>{{ $c->name }}</span>
                                                 </span>
                                             @empty
-                                                <span class="text-[11px] text-zinc-400 italic">Belum ada kasir ditugaskan</span>
+                                                <span class="text-xs text-slate-400 italic py-1">Belum ada kasir ditugaskan</span>
                                             @endforelse
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Actions -->
-                                <div class="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
+                                <!-- Action Buttons: Clearly Differentiated and Colored -->
+                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <!-- Edit Jadwal: Distinct Soft Indigo Pill Button -->
                                     <button 
                                         type="button" 
                                         @click="openEditModal({{ Js::from($shift) }}, {{ Js::from($day) }})"
-                                        class="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold rounded text-xs transition cursor-pointer"
+                                        class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-700 border border-indigo-200 hover:border-indigo-300 font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs cursor-pointer flex items-center gap-1.5"
                                     >
-                                        Edit Jadwal
+                                        <span>✏</span>
+                                        <span>Edit Jadwal</span>
                                     </button>
 
-                                    <div class="flex items-center gap-1.5">
+                                    <!-- Shift Switch Action -->
+                                    <div class="flex items-center gap-2">
                                         @if ($shift->isScheduled() || $shift->isClosed())
                                             <form action="{{ route('admin.shifts.open', $shift) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition cursor-pointer">
-                                                    Buka Shift
+                                                <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
+                                                    <span>▶</span>
+                                                    <span>Buka Shift</span>
                                                 </button>
                                             </form>
                                         @endif
 
                                         @if ($shift->isOpen())
-                                            <form action="{{ route('admin.shifts.close', $shift) }}" method="POST" onsubmit="return confirm('Tutup shift ini?')">
+                                            <form action="{{ route('admin.shifts.close', $shift) }}" method="POST" onsubmit="return confirm('Tutup shift ini? Kasir tidak akan dapat bertransaksi setelah shift ditutup.')">
                                                 @csrf
-                                                <button type="submit" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded text-xs transition cursor-pointer">
-                                                    Tutup Shift
+                                                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
+                                                    <span>■</span>
+                                                    <span>Tutup Shift</span>
                                                 </button>
                                             </form>
                                         @endif
@@ -120,59 +157,79 @@
             @endforeach
         </div>
 
-        <!-- Edit Modal -->
+        <!-- Roomy, Accessible Edit Modal -->
         <div 
             x-show="showModal" 
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
             style="display: none;"
         >
-            <div class="bg-white rounded-lg max-w-md w-full p-5 border border-zinc-200" @click.outside="showModal = false">
-                <div class="flex items-center justify-between pb-2 border-b border-zinc-200 mb-3">
-                    <h3 class="font-bold text-sm text-zinc-900" x-text="'Edit ' + shiftNumber + ' — Hari ' + dayName"></h3>
-                    <button @click="showModal = false" class="text-zinc-400 hover:text-zinc-600 text-xs">✕</button>
+            <div 
+                class="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-200 shadow-2xl space-y-4" 
+                @click.outside="showModal = false"
+            >
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900" x-text="'Edit ' + shiftNumber + ' — Hari ' + dayName"></h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Ubah jam operasional dan kasir yang bertugas</p>
+                    </div>
+                    <button @click="showModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-sm font-bold cursor-pointer transition">✕</button>
                 </div>
 
-                <form :action="'/admin/shifts/' + shiftId" method="POST" class="space-y-3">
+                <form :action="'/admin/shifts/' + shiftId" method="POST" class="space-y-4">
                     @csrf
                     @method('PUT')
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-700 mb-1">Nama Shift</label>
-                        <input type="text" name="name" x-model="name" required class="w-full px-3 py-1.5 text-xs rounded border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-900">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Shift</label>
+                        <input type="text" name="name" x-model="name" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-700 mb-1">Jam Mulai</label>
-                            <input type="time" name="start_time" x-model="startTime" class="w-full px-3 py-1.5 text-xs rounded border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-900">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Jam Mulai</label>
+                            <input type="time" name="start_time" x-model="startTime" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-700 mb-1">Jam Selesai</label>
-                            <input type="time" name="end_time" x-model="endTime" class="w-full px-3 py-1.5 text-xs rounded border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-900">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Jam Selesai</label>
+                            <input type="time" name="end_time" x-model="endTime" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-zinc-700 mb-1.5">Penugasan Kasir</label>
-                        <div class="grid grid-cols-2 gap-1.5 border border-zinc-200 rounded p-2.5 max-h-36 overflow-y-auto text-xs">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Pilih Petugas Kasir</label>
+                        <div class="space-y-2 border border-slate-200 rounded-2xl p-3 max-h-48 overflow-y-auto">
                             @foreach ($allCashiers as $c)
-                                <label class="flex items-center gap-1.5 p-1 rounded hover:bg-zinc-50 cursor-pointer select-none">
+                                <label class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-indigo-50/50 cursor-pointer select-none transition">
                                     <input 
                                         type="checkbox" 
                                         name="cashier_ids[]" 
                                         value="{{ $c->id }}"
                                         :checked="selectedCashiers.includes({{ $c->id }})"
-                                        class="rounded text-zinc-900 focus:ring-zinc-900 border-zinc-300"
+                                        class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
                                     >
-                                    <span class="font-medium text-zinc-800">{{ $c->name }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">
+                                            {{ substr($c->name, 0, 1) }}
+                                        </span>
+                                        <div>
+                                            <span class="font-bold text-xs text-slate-900 block leading-tight">{{ $c->name }}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono block">@ {{ $c->username }}</span>
+                                        </div>
+                                    </div>
                                 </label>
                             @endforeach
                         </div>
                     </div>
 
-                    <div class="pt-2 border-t border-zinc-200 flex items-center justify-end gap-2">
-                        <button type="button" @click="showModal = false" class="px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 rounded">Batal</button>
-                        <button type="submit" class="px-4 py-1.5 bg-zinc-900 hover:bg-black text-white font-bold text-xs rounded">Simpan</button>
+                    <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                        <button type="button" @click="showModal = false" class="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">Batal</button>
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs transition cursor-pointer">Simpan Jadwal</button>
                     </div>
                 </form>
             </div>
