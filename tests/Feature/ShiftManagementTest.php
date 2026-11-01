@@ -106,7 +106,7 @@ class ShiftManagementTest extends TestCase
         $response = $this->get(route('cashier.pos'));
 
         $response->assertStatus(200);
-        $response->assertSee('Katalog Produk Stand');
+        $response->assertSee('Pilih Barang:');
     }
 
     public function test_cashier_cannot_access_pos_when_shift_is_not_open(): void

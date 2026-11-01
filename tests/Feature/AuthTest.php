@@ -15,7 +15,7 @@ class AuthTest extends TestCase
     {
         $response = $this->get('/login');
         $response->assertStatus(200);
-        $response->assertSee('Event Sales Management');
+        $response->assertSee('STAND PKTOS');
     }
 
     public function test_admin_can_login_with_username_and_is_redirected_to_dashboard(): void

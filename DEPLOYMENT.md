@@ -259,3 +259,4 @@ Setelah menjalankan `php artisan migrate --seed`, akun berikut siap digunakan:
 | 5 | **Petugas 4 (Shift 2)** | Dewi Lestari | `dewi` | `dewi@stand-pktos.local` | `password123` |
 
 *Catatan: Tombol "Akses Cepat Pengujian" tersedia pada halaman login untuk mengisi username dan password secara otomatis dengan sekali klik.*
+
