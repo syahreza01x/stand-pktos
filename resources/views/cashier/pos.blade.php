@@ -262,7 +262,6 @@
                         </div>
                         <div class="text-right">
                             <span class="font-black text-sm sm:text-base text-slate-900 block">Harga Kustom</span>
-                            <span class="text-[11px] text-indigo-600 font-bold">Shortcut 5k & 10k</span>
                         </div>
                     </div>
 
@@ -313,7 +312,6 @@
                         </div>
                         <div class="text-right">
                             <span class="font-black text-sm sm:text-base text-slate-900 block">Harga Kustom</span>
-                            <span class="text-[11px] text-indigo-600 font-bold">Shortcut 2k, 3k, 5k, 10k</span>
                         </div>
                     </div>
 
