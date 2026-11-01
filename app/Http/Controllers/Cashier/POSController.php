@@ -38,8 +38,9 @@ class POSController extends Controller
         }
 
         $products = Product::active()->get();
+        $shiftSummary = $this->posService->getShiftPaymentSummary($activeShift);
 
-        return view('cashier.pos', compact('activeShift', 'products', 'user'));
+        return view('cashier.pos', compact('activeShift', 'products', 'user', 'shiftSummary'));
     }
 
     public function store(Request $request): JsonResponse|RedirectResponse
@@ -72,6 +73,7 @@ class POSController extends Controller
                         'total_items' => $transaction->total_items,
                         'payment_method' => strtoupper($transaction->payment_method),
                         'created_at' => $transaction->created_at->format('d/m/Y H:i:s'),
+                        'shift_summary' => $this->posService->getShiftPaymentSummary($transaction->shift),
                         'items' => $transaction->items->map(fn ($it) => [
                             'name' => $it->product_name_snapshot,
                             'price' => $it->formatted_unit_price,

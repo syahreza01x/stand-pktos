@@ -195,4 +195,69 @@ class POSService
             return $transaction;
         });
     }
+
+    /**
+     * Get payment method breakdown (Cash, QRIS, Transfer) for a specific shift.
+     *
+     * @return array{
+     *     shift_id: int,
+     *     shift_name: string,
+     *     day_name: string|null,
+     *     shift_number: string,
+     *     status: string,
+     *     total_revenue: float,
+     *     formatted_total_revenue: string,
+     *     total_transactions: int,
+     *     total_items: int,
+     *     cash: array{total: float, formatted: string, count: int},
+     *     qris: array{total: float, formatted: string, count: int},
+     *     transfer: array{total: float, formatted: string, count: int}
+     * }
+     */
+    public function getShiftPaymentSummary(Shift $shift): array
+    {
+        $query = Transaction::query()
+            ->where('shift_id', $shift->id)
+            ->where('status', '!=', 'voided');
+
+        $cashTotal = (float) (clone $query)->where('payment_method', 'cash')->sum('total_amount');
+        $cashCount = (clone $query)->where('payment_method', 'cash')->count();
+
+        $qrisTotal = (float) (clone $query)->where('payment_method', 'qris')->sum('total_amount');
+        $qrisCount = (clone $query)->where('payment_method', 'qris')->count();
+
+        $transferTotal = (float) (clone $query)->where('payment_method', 'transfer')->sum('total_amount');
+        $transferCount = (clone $query)->where('payment_method', 'transfer')->count();
+
+        $totalRevenue = $cashTotal + $qrisTotal + $transferTotal;
+        $totalTx = $cashCount + $qrisCount + $transferCount;
+        $totalItems = (int) (clone $query)->sum('total_items');
+
+        return [
+            'shift_id' => $shift->id,
+            'shift_name' => $shift->name,
+            'day_name' => $shift->eventDay?->day_name,
+            'shift_number' => $shift->shift_number,
+            'status' => $shift->status,
+            'total_revenue' => $totalRevenue,
+            'formatted_total_revenue' => 'Rp'.number_format($totalRevenue, 0, ',', '.'),
+            'total_transactions' => $totalTx,
+            'total_items' => $totalItems,
+            'cash' => [
+                'total' => $cashTotal,
+                'formatted' => 'Rp'.number_format($cashTotal, 0, ',', '.'),
+                'count' => $cashCount,
+            ],
+            'qris' => [
+                'total' => $qrisTotal,
+                'formatted' => 'Rp'.number_format($qrisTotal, 0, ',', '.'),
+                'count' => $qrisCount,
+            ],
+            'transfer' => [
+                'total' => $transferTotal,
+                'formatted' => 'Rp'.number_format($transferTotal, 0, ',', '.'),
+                'count' => $transferCount,
+            ],
+        ];
+    }
 }

@@ -4,12 +4,14 @@
     <div 
         x-data="{
             products: {{ Js::from($products) }},
+            shiftSummary: {{ Js::from($shiftSummary) }},
             activeShiftId: {{ $activeShift->id }},
             cart: {},
             paymentMethod: 'cash',
             notes: '',
             isSubmitting: false,
             showReceiptModal: false,
+            showShiftSummaryModal: false,
             showMobileCheckout: false,
             completedTx: null,
             idempotencyKey: '',
@@ -200,6 +202,9 @@
 
                     if (response.ok && result.success) {
                         this.completedTx = result.data;
+                        if (result.data && result.data.shift_summary) {
+                            this.shiftSummary = result.data.shift_summary;
+                        }
                         this.showMobileCheckout = false;
                         this.showReceiptModal = true;
                         this.clearCart();
@@ -215,19 +220,57 @@
         }"
         class="space-y-4"
     >
-        <!-- Shift Aktif Info Bar -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
-            <div>
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Shift Berjalan:</span>
-                <div class="font-bold text-slate-900 text-sm mt-0.5">
-                    Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }}
+        <!-- Shift Aktif Info Bar with Live Cash Reconciliation -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Shift Berjalan:</span>
+                    <div class="font-bold text-slate-900 text-sm sm:text-base mt-0.5">
+                        Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }}
+                    </div>
+                    <div class="text-xs text-slate-500">{{ $activeShift->name }}</div>
                 </div>
-                <div class="text-xs text-slate-500">{{ $activeShift->name }}</div>
+
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        @click="showShiftSummaryModal = true"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition cursor-pointer"
+                    >
+                        Rekap Kas Shift
+                    </button>
+                    <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Shift Open
+                    </span>
+                </div>
             </div>
 
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Shift Open
-            </span>
+            <!-- Mini Live Reconciliation Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100">
+                <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-2.5">
+                    <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wide block">Tunai (Stand)</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-900" x-text="formatRupiah(shiftSummary?.cash?.total || 0)"></span>
+                    <span class="block text-[10px] text-emerald-700" x-text="(shiftSummary?.cash?.count || 0) + ' trx'"></span>
+                </div>
+
+                <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5">
+                    <span class="text-[10px] font-bold text-blue-800 uppercase tracking-wide block">QRIS Stand</span>
+                    <span class="text-xs sm:text-sm font-black text-blue-900" x-text="formatRupiah(shiftSummary?.qris?.total || 0)"></span>
+                    <span class="block text-[10px] text-blue-700" x-text="(shiftSummary?.qris?.count || 0) + ' trx'"></span>
+                </div>
+
+                <div class="bg-purple-50/70 border border-purple-100 rounded-xl p-2.5">
+                    <span class="text-[10px] font-bold text-purple-800 uppercase tracking-wide block">Transfer (TF)</span>
+                    <span class="text-xs sm:text-sm font-black text-purple-900" x-text="formatRupiah(shiftSummary?.transfer?.total || 0)"></span>
+                    <span class="block text-[10px] text-purple-700" x-text="(shiftSummary?.transfer?.count || 0) + ' trx'"></span>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide block">Total Shift</span>
+                    <span class="text-xs sm:text-sm font-black text-slate-900" x-text="formatRupiah(shiftSummary?.total_revenue || 0)"></span>
+                    <span class="block text-[10px] text-slate-500" x-text="(shiftSummary?.total_transactions || 0) + ' transaksi'"></span>
+                </div>
+            </div>
         </div>
 
         <!-- Section Header -->
@@ -988,6 +1031,95 @@
                     <span x-show="!isSubmitting">Konfirmasi & Simpan Transaksi</span>
                     <span x-show="isSubmitting">Menyimpan Transaksi...</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Shift Reconciliation Modal -->
+        <div 
+            x-show="showShiftSummaryModal" 
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+            style="display: none;"
+        >
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-200 shadow-2xl" @click.outside="showShiftSummaryModal = false">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                        <h3 class="font-black text-base text-slate-900">Rekap Kas Shift</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $activeShift->name }} ({{ $activeShift->shift_number }})</p>
+                    </div>
+                    <button 
+                        type="button" 
+                        @click="showShiftSummaryModal = false"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 cursor-pointer"
+                    >
+                        Tutup
+                    </button>
+                </div>
+
+                <div class="py-4 space-y-3">
+                    <!-- Cash / Tunai -->
+                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase text-emerald-800 tracking-wider">1. Uang Tunai / Cash (Laci Stand)</span>
+                                <div class="text-xl font-black text-emerald-950 mt-1" x-text="formatRupiah(shiftSummary?.cash?.total || 0)"></div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-emerald-200 text-emerald-900" x-text="(shiftSummary?.cash?.count || 0) + ' Transaksi'"></span>
+                        </div>
+                        <p class="text-xs text-emerald-800 mt-2 font-medium">
+                            Cocokkan dengan uang cash fisik yang ada di laci / dompet stand saat ini.
+                        </p>
+                    </div>
+
+                    <!-- QRIS -->
+                    <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase text-blue-800 tracking-wider">2. QRIS Stand (Digital)</span>
+                                <div class="text-xl font-black text-blue-950 mt-1" x-text="formatRupiah(shiftSummary?.qris?.total || 0)"></div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-blue-200 text-blue-900" x-text="(shiftSummary?.qris?.count || 0) + ' Transaksi'"></span>
+                        </div>
+                        <p class="text-xs text-blue-800 mt-2 font-medium">
+                            Cocokkan dengan notifikasi riwayat transaksi di aplikasi QRIS stand.
+                        </p>
+                    </div>
+
+                    <!-- Transfer -->
+                    <div class="p-4 rounded-2xl bg-purple-50 border border-purple-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase text-purple-800 tracking-wider">3. Transfer Bank (TF)</span>
+                                <div class="text-xl font-black text-purple-950 mt-1" x-text="formatRupiah(shiftSummary?.transfer?.total || 0)"></div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-purple-200 text-purple-900" x-text="(shiftSummary?.transfer?.count || 0) + ' Transaksi'"></span>
+                        </div>
+                        <p class="text-xs text-purple-800 mt-2 font-medium">
+                            Cocokkan dengan mutasi rekening / bukti transfer pembeli.
+                        </p>
+                    </div>
+
+                    <!-- Grand Total Shift -->
+                    <div class="p-4 rounded-2xl bg-slate-900 text-white flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-slate-400 font-semibold uppercase block">Total Omset Shift:</span>
+                            <span class="text-xl font-black text-white" x-text="formatRupiah(shiftSummary?.total_revenue || 0)"></span>
+                        </div>
+                        <div class="text-right text-xs text-slate-300">
+                            <div><strong class="text-white" x-text="shiftSummary?.total_transactions || 0"></strong> transaksi</div>
+                            <div><strong class="text-white" x-text="shiftSummary?.total_items || 0"></strong> unit barang</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button 
+                        type="button" 
+                        @click="showShiftSummaryModal = false"
+                        class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition cursor-pointer"
+                    >
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
 

@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Cashier;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
 use App\Models\Transaction;
+use App\Services\POSService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CashierDashboardController extends Controller
 {
-    public function index(): View
+    public function __construct(
+        protected POSService $posService
+    ) {}
+
+    public function index(Request $request): View
     {
         $user = auth()->user();
         $today = Carbon::today()->toDateString();
@@ -23,14 +29,29 @@ class CashierDashboardController extends Controller
             })
             ->first();
 
-        // 2. Upcoming / assigned shifts for this cashier
+        // 2. Assigned shifts for this cashier (strictly isolated to this user)
         $myShifts = $user->shifts()
             ->with('eventDay')
             ->orderBy('event_day_id')
             ->orderBy('shift_number')
             ->get();
 
-        // 3. Personal sales today
+        // 3. Determine viewed shift for cash reconciliation (strictly constrained to cashier's assigned shifts)
+        $selectedShiftId = $request->query('shift_id');
+        $viewedShift = null;
+
+        if ($selectedShiftId) {
+            $viewedShift = $myShifts->firstWhere('id', (int) $selectedShiftId);
+        }
+
+        if (! $viewedShift) {
+            $viewedShift = $activeShift ?? $myShifts->first();
+        }
+
+        // 4. Breakdown per-shift: Cash, QRIS, Transfer, and grand total
+        $shiftSummary = $viewedShift ? $this->posService->getShiftPaymentSummary($viewedShift) : null;
+
+        // 5. Personal sales today
         $personalTodayQuery = Transaction::where('cashier_id', $user->id)
             ->where('status', '!=', 'voided')
             ->whereDate('created_at', $today);
@@ -39,26 +60,15 @@ class CashierDashboardController extends Controller
         $personalTodayTx = (clone $personalTodayQuery)->count();
         $personalTodayUnits = (int) (clone $personalTodayQuery)->sum('total_items');
 
-        // 4. Shift total revenue (if shift is open)
-        $shiftTotalRevenue = 0.00;
-        $shiftTotalTx = 0;
-        if ($activeShift) {
-            $shiftQuery = Transaction::where('shift_id', $activeShift->id)
-                ->where('status', '!=', 'voided');
-
-            $shiftTotalRevenue = (float) (clone $shiftQuery)->sum('total_amount');
-            $shiftTotalTx = (clone $shiftQuery)->count();
-        }
-
         return view('cashier.dashboard', compact(
             'user',
             'activeShift',
+            'viewedShift',
             'myShifts',
+            'shiftSummary',
             'personalTodayRevenue',
             'personalTodayTx',
-            'personalTodayUnits',
-            'shiftTotalRevenue',
-            'shiftTotalTx'
+            'personalTodayUnits'
         ));
     }
 }

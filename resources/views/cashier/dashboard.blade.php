@@ -17,7 +17,7 @@
                         </span>
                     @else
                         <span class="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                            Tidak ada shift open yang ditugaskan
+                            Tidak ada shift open yang ditugaskan saat ini
                         </span>
                     @endif
                 </div>
@@ -36,50 +36,127 @@
             </div>
         </div>
 
-        <!-- Metric Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-                <div>
-                    <span class="inline-block text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md uppercase tracking-wider mb-2">
-                        Penjualan Saya Hari Ini
-                    </span>
-                    <div class="text-base sm:text-xl font-black text-slate-900 mt-1">
-                        Rp{{ number_format($personalTodayRevenue, 0, ',', '.') }}
+        @if ($shiftSummary)
+            <!-- REKONSILIASI KAS STAND (SHIFT INI) -->
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-black text-sm sm:text-base text-slate-900 uppercase tracking-wider">
+                                Rekonsiliasi Kas Stand — Shift Ini
+                            </h2>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase {{ $shiftSummary['status'] === 'open' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-700' }}">
+                                {{ $shiftSummary['status'] === 'open' ? 'Shift Open' : 'Shift Closed' }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Hari {{ $shiftSummary['day_name'] }} • {{ $shiftSummary['shift_number'] }} ({{ $shiftSummary['shift_name'] }})
+                        </p>
                     </div>
-                </div>
-                <div class="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100 font-medium">
-                    {{ $personalTodayTx }} transaksi • {{ $personalTodayUnits }} item
-                </div>
-            </div>
 
-            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-                <div>
-                    <span class="inline-block text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider mb-2">
-                        Total Omzet Shift Ini
-                    </span>
-                    <div class="text-base sm:text-xl font-black text-slate-900 mt-1">
-                        Rp{{ number_format($shiftTotalRevenue, 0, ',', '.') }}
-                    </div>
+                    @if ($myShifts->count() > 1)
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-slate-400 text-[11px] font-medium">Pilih Shift:</span>
+                            <div class="flex gap-1 overflow-x-auto">
+                                @foreach ($myShifts as $ms)
+                                    <a 
+                                        href="{{ route('cashier.dashboard', ['shift_id' => $ms->id]) }}"
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition {{ ($viewedShift && $viewedShift->id === $ms->id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
+                                    >
+                                        {{ $ms->shift_number }} ({{ $ms->eventDay->day_name }})
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
-                <div class="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100 font-medium">
-                    Gabungan seluruh kasir di shift
-                </div>
-            </div>
 
-            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs col-span-2 sm:col-span-1 flex flex-col justify-between">
-                <div>
-                    <span class="inline-block text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md uppercase tracking-wider mb-2">
-                        Total Transaksi Shift
-                    </span>
-                    <div class="text-base sm:text-xl font-black text-slate-900 mt-1">
-                        {{ $shiftTotalTx }} <span class="text-xs font-semibold text-slate-500">Struk</span>
+                <!-- 3 Kotak Metode Bayar: Cash, QRIS, Transfer -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <!-- 1. Tunai (Cash) -->
+                    <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-emerald-900">
+                                1. Uang Tunai (Cash)
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-200/60 text-emerald-900">
+                                Uang Fisik Stand
+                            </span>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-black text-slate-900">
+                            {{ $shiftSummary['cash']['formatted'] }}
+                        </div>
+                        <div class="text-xs text-slate-600 font-medium pt-1 border-t border-emerald-100">
+                            <strong>{{ $shiftSummary['cash']['count'] }}</strong> transaksi tunai
+                            <span class="block text-[11px] text-emerald-800 font-semibold mt-0.5">
+                                Hitung & cocokkan dengan uang tunai di kotak/laci stand.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 2. QRIS Stand -->
+                    <div class="p-4 rounded-xl border border-sky-200 bg-sky-50/40 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-sky-900">
+                                2. QRIS Stand
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-200/60 text-sky-900">
+                                Digital QRIS
+                            </span>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-black text-slate-900">
+                            {{ $shiftSummary['qris']['formatted'] }}
+                        </div>
+                        <div class="text-xs text-slate-600 font-medium pt-1 border-t border-sky-100">
+                            <strong>{{ $shiftSummary['qris']['count'] }}</strong> transaksi QRIS
+                            <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
+                                Cocokkan dengan notifikasi/riwayat aplikasi QRIS stand.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Transfer Bank (TF) -->
+                    <div class="p-4 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-purple-900">
+                                3. Transfer Bank (TF)
+                            </span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-200/60 text-purple-900">
+                                Transfer Rekening
+                            </span>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-black text-slate-900">
+                            {{ $shiftSummary['transfer']['formatted'] }}
+                        </div>
+                        <div class="text-xs text-slate-600 font-medium pt-1 border-t border-purple-100">
+                            <strong>{{ $shiftSummary['transfer']['count'] }}</strong> transaksi transfer
+                            <span class="block text-[11px] text-purple-800 font-semibold mt-0.5">
+                                Cocokkan dengan mutasi rekening bank penerimaan stand.
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div class="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100 font-medium">
-                    Shift yang sedang berjalan
+
+                <!-- Total Hari/Shift Bar -->
+                <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-semibold uppercase tracking-wider">
+                            Total Seluruh Penerimaan Shift Ini:
+                        </span>
+                        <div class="text-2xl font-black text-emerald-400 mt-0.5">
+                            {{ $shiftSummary['formatted_total_revenue'] }}
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-300 font-medium sm:text-right">
+                        <div>Akumulasi <strong>{{ $shiftSummary['total_transactions'] }} transaksi</strong> berhasil</div>
+                        <span class="text-[11px] text-slate-400 block mt-0.5">
+                            Data terisolasi khusus penugasan shift ini
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
 
         <!-- Schedule Card List -->
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
