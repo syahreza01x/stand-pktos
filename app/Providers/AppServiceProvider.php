@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Support HTTPS behind reverse proxies like Cloudflare Tunnel or load balancers
+        if (
+            request()->header('x-forwarded-proto') === 'https'
+            || request()->server('HTTP_X_FORWARDED_PROTO') === 'https'
+            || str_contains((string) request()->url(), 'trycloudflare.com')
+        ) {
+            URL::forceScheme('https');
+        }
     }
 }
