@@ -4,9 +4,8 @@
 
     <div class="max-w-3xl space-y-5">
         <div>
-            <a href="{{ route('admin.transactions.index') }}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 font-bold transition">
-                <span>←</span>
-                <span>Kembali ke Riwayat Transaksi</span>
+            <a href="{{ route('admin.transactions.index') }}" class="inline-flex items-center text-xs text-slate-500 hover:text-indigo-600 font-bold transition">
+                Kembali ke Riwayat Transaksi
             </a>
         </div>
 

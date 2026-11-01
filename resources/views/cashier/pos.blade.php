@@ -167,7 +167,7 @@
                                         @click="addToCart(product)"
                                         class="w-full py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600 font-bold text-xs transition duration-150 cursor-pointer text-center"
                                     >
-                                        + Tambah
+                                        Tambah
                                     </button>
                                 </template>
 
@@ -330,10 +330,9 @@
                 <button 
                     type="button" 
                     @click="showMobileCheckout = true"
-                    class="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                    class="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-sm"
                 >
-                    <span>Bayar Sekarang</span>
-                    <span>→</span>
+                    Bayar Sekarang
                 </button>
             </div>
         </div>
@@ -360,8 +359,8 @@
                         <h3 class="font-bold text-base text-slate-900">Selesaikan Pembayaran</h3>
                         <span class="text-xs text-slate-500" x-text="totalItemsCount + ' item belanja'"></span>
                     </div>
-                    <button @click="showMobileCheckout = false" class="p-1.5 text-slate-400 hover:text-slate-700 text-sm font-bold">
-                        ✕
+                    <button @click="showMobileCheckout = false" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+                        Tutup
                     </button>
                 </div>
 
@@ -444,8 +443,8 @@
             style="display: none;"
         >
             <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl" @click.outside="showReceiptModal = false">
-                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold mb-3">
-                    ✓
+                <div class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold w-fit mx-auto mb-3">
+                    Transaksi Sukses
                 </div>
 
                 <div class="text-center mb-4">

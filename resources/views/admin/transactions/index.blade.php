@@ -244,7 +244,7 @@
                         <h3 class="font-extrabold text-base text-slate-900">Batalkan Transaksi (Void)</h3>
                         <span class="text-xs text-indigo-700 font-mono font-bold" x-text="voidInvoice"></span>
                     </div>
-                    <button @click="showVoidModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold transition">✕</button>
+                    <button @click="showVoidModal = false" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">Tutup</button>
                 </div>
 
                 <form :action="voidAction" method="POST" class="space-y-4">

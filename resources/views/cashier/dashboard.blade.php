@@ -12,8 +12,7 @@
                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
                     <span>Shift Saat Ini:</span>
                     @if ($activeShift)
-                        <span class="inline-flex items-center gap-1.5 font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="inline-flex items-center font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                             Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }} (OPEN)
                         </span>
                     @else
@@ -26,9 +25,8 @@
 
             <div class="shrink-0">
                 @if ($activeShift)
-                    <a href="{{ route('cashier.pos') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xs transition duration-150 cursor-pointer">
-                        <span>Buka Kasir POS</span>
-                        <span>→</span>
+                    <a href="{{ route('cashier.pos') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xs transition duration-150 cursor-pointer">
+                        Buka Kasir POS
                     </a>
                 @else
                     <span class="w-full sm:w-auto inline-block text-xs font-semibold text-slate-400 py-2 px-4 bg-slate-100 rounded-xl text-center border border-slate-200">
@@ -112,14 +110,13 @@
                             <div class="text-slate-500 text-xs font-medium flex items-center gap-1.5">
                                 <span>{{ $s->name }}</span>
                                 <span>•</span>
-                                <span>🕒 {{ substr($s->start_time ?? '08:00', 0, 5) }} — {{ substr($s->end_time ?? '12:00', 0, 5) }} WIB</span>
+                                <span>Jam: {{ substr($s->start_time ?? '08:00', 0, 5) }} — {{ substr($s->end_time ?? '12:00', 0, 5) }} WIB</span>
                             </div>
                         </div>
 
                         <div>
                             @if ($s->status === 'open')
-                                <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
                                     OPEN
                                 </span>
                             @elseif ($s->status === 'closed')

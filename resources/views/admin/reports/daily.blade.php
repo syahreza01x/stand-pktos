@@ -18,10 +18,9 @@
 
             <a 
                 href="{{ route('admin.reports.export-daily', $activeDay) }}"
-                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs text-center flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs text-center flex items-center justify-center shrink-0 cursor-pointer"
             >
-                <span>📊</span>
-                <span>Download Excel (Hari {{ $activeDay->day_name }})</span>
+                Download Excel (Hari {{ $activeDay->day_name }})
             </a>
         </div>
 

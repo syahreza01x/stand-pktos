@@ -3,7 +3,7 @@
     <x-slot:header>Ringkasan Penjualan</x-slot:header>
 
     <div class="space-y-6">
-        <!-- Top 4 Metrics (Roomy, Clean, Mobile-Friendly) -->
+        <!-- Top 4 Metrics -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <!-- Metric 1: Total Omzet -->
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition duration-150 flex flex-col justify-between">
@@ -75,8 +75,7 @@
                             {{ $activeShift ? 'Shift Aktif: ' . $activeShift->shift_number . ' (' . $activeShift->name . ')' : 'Stand Sedang Tutup' }}
                         </h2>
                         @if ($activeShift)
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
                                 OPEN
                             </span>
                         @else
@@ -94,21 +93,19 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons: Distinct & Colored -->
+                <!-- Action Buttons (No Icons) -->
                 <div class="flex items-center gap-2 shrink-0">
                     @if ($activeShift)
                         <form action="{{ route('admin.shifts.close', $activeShift) }}" method="POST" onsubmit="return confirm('Tutup shift ini? Kasir tidak akan dapat bertransaksi setelah shift ditutup.')">
                             @csrf
-                            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1">
-                                <span>■</span>
-                                <span>Tutup Shift</span>
+                            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs cursor-pointer">
+                                Tutup Shift
                             </button>
                         </form>
                     @endif
                     
-                    <a href="{{ route('admin.shifts.index') }}" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-700 border border-indigo-200 hover:border-indigo-300 font-bold text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center gap-1">
-                        <span>Kelola Shift</span>
-                        <span>→</span>
+                    <a href="{{ route('admin.shifts.index') }}" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-700 border border-indigo-200 hover:border-indigo-300 font-bold text-xs sm:text-sm rounded-xl transition shadow-xs">
+                        Kelola Shift
                     </a>
                 </div>
             </div>
@@ -118,12 +115,9 @@
                 <div class="pt-3.5 flex flex-wrap items-center gap-2">
                     <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Petugas On-Duty:</span>
                     @forelse ($activeShift->cashiers as $c)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-800 text-xs font-semibold">
-                            <span class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center">
-                                {{ substr($c->name, 0, 1) }}
-                            </span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-800 text-xs font-semibold">
                             <span>{{ $c->name }}</span>
-                            <span class="text-slate-400 text-[10px]">(@ {{ $c->username }})</span>
+                            <span class="text-slate-400 text-[10px] ml-1">(@ {{ $c->username }})</span>
                         </span>
                     @empty
                         <span class="text-slate-400 text-xs italic">Belum ada petugas kasir ditugaskan di shift ini.</span>
@@ -142,7 +136,7 @@
                         <p class="text-[11px] text-slate-400">Akumulasi penjualan tiap hari acara</p>
                     </div>
                     <a href="{{ route('admin.reports.five-days') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">
-                        Laporan Detail →
+                        Laporan Detail
                     </a>
                 </div>
 
@@ -207,9 +201,7 @@
                         @forelse ($recap['products_ranking']->take(4) as $idx => $pr)
                             <div class="py-2 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-700' }} text-[11px] font-black flex items-center justify-center">
-                                        {{ $idx + 1 }}
-                                    </span>
+                                    <span class="font-bold text-slate-400 text-xs">{{ $idx + 1 }}.</span>
                                     <span class="font-bold text-slate-800">{{ $pr->product_name_snapshot }}</span>
                                 </div>
                                 <span class="font-black text-slate-900">{{ $pr->total_units }} unit</span>
@@ -222,14 +214,14 @@
             </div>
         </div>
 
-        <!-- Latest Transactions (Mobile Cards + Desktop Table) -->
+        <!-- Latest Transactions -->
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div class="px-4 sm:px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
                 <div>
                     <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Transaksi Terbaru</h3>
                 </div>
                 <a href="{{ route('admin.transactions.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">
-                    Lihat Semua Transaksi →
+                    Lihat Semua Transaksi
                 </a>
             </div>
 

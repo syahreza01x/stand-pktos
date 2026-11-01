@@ -57,10 +57,9 @@
             <button 
                 type="button" 
                 @click="openCreateModal()"
-                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition duration-150 cursor-pointer flex items-center justify-center gap-1.5"
+                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition duration-150 cursor-pointer"
             >
-                <span>+</span>
-                <span>Tambah Akun</span>
+                Tambah Akun
             </button>
         </div>
 
@@ -71,20 +70,15 @@
                 @forelse ($users as $u)
                     <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-3">
                         <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0">
-                                    {{ substr($u->name, 0, 1) }}
-                                </span>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-900 leading-tight">
-                                        {{ $u->name }}
-                                        @if ($u->id === auth()->id())
-                                            <span class="text-[10px] text-indigo-600 font-semibold ml-1">(Anda)</span>
-                                        @endif
-                                    </h4>
-                                    <span class="text-xs font-mono text-slate-500 block">@ {{ $u->username }}</span>
-                                    <span class="text-[11px] text-slate-400 block">{{ $u->email }}</span>
-                                </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-900 leading-tight">
+                                    {{ $u->name }}
+                                    @if ($u->id === auth()->id())
+                                        <span class="text-[10px] text-indigo-600 font-semibold ml-1">(Anda)</span>
+                                    @endif
+                                </h4>
+                                <span class="text-xs font-mono text-slate-500 block">@ {{ $u->username }}</span>
+                                <span class="text-[11px] text-slate-400 block">{{ $u->email }}</span>
                             </div>
 
                             <div class="text-right">
@@ -234,7 +228,7 @@
             <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl space-y-4" @click.outside="showModal = false">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                     <h3 class="font-extrabold text-base text-slate-900" x-text="modalMode === 'create' ? 'Tambah Akun Petugas' : 'Edit Akun Petugas'"></h3>
-                    <button @click="showModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold transition">✕</button>
+                    <button @click="showModal = false" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">Tutup</button>
                 </div>
 
                 <form :action="formAction" method="POST" class="space-y-4">

@@ -92,7 +92,7 @@
             <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl space-y-4" @click.outside="showModal = false">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                     <h3 class="font-extrabold text-base text-slate-900" x-text="'Edit Hari ' + dayName"></h3>
-                    <button @click="showModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold transition">✕</button>
+                    <button @click="showModal = false" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">Tutup</button>
                 </div>
 
                 <form :action="'/admin/event-days/' + dayId" method="POST" class="space-y-4">

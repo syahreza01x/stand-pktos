@@ -13,10 +13,9 @@
 
             <a 
                 href="{{ route('admin.reports.export-five-days') }}"
-                class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs text-center shrink-0 flex items-center justify-center gap-2 cursor-pointer"
+                class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-150 shadow-xs text-center shrink-0 flex items-center justify-center cursor-pointer"
             >
-                <span>📊</span>
-                <span>Download Excel (Rekap 5 Hari)</span>
+                Download Excel (Rekap 5 Hari)
             </a>
         </div>
 
@@ -106,7 +105,7 @@
                                         href="{{ route('admin.reports.daily', ['event_day_id' => $ds['day']->id]) }}"
                                         class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-xl text-xs transition"
                                     >
-                                        Rincian →
+                                        Rincian
                                     </a>
                                 </td>
                             </tr>
@@ -138,10 +137,8 @@
                 <div class="divide-y divide-slate-100 text-xs">
                     @forelse ($recap['products_ranking'] as $idx => $pr)
                         <div class="p-3.5 flex items-center justify-between hover:bg-slate-50/60 transition">
-                            <div class="flex items-center gap-3">
-                                <span class="w-6 h-6 rounded-full {{ $idx === 0 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-700' }} text-xs font-black flex items-center justify-center">
-                                    {{ $idx + 1 }}
-                                </span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-400 text-xs">{{ $idx + 1 }}.</span>
                                 <div>
                                     <strong class="text-slate-900 text-xs sm:text-sm block">{{ $pr->product_name_snapshot }}</strong>
                                     <div class="text-[11px] text-slate-400 font-medium">Rp{{ number_format($pr->total_revenue, 0, ',', '.') }}</div>
@@ -164,14 +161,9 @@
                 <div class="divide-y divide-slate-100 text-xs">
                     @forelse ($recap['cashiers_recap'] as $cr)
                         <div class="p-3.5 flex items-center justify-between hover:bg-slate-50/60 transition">
-                            <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center">
-                                    {{ substr($cr->user_name, 0, 1) }}
-                                </span>
-                                <div>
-                                    <div class="font-bold text-slate-900 text-xs sm:text-sm">{{ $cr->user_name }}</div>
-                                    <div class="text-[11px] text-slate-400 font-medium">@ {{ $cr->username }} • {{ $cr->tx_count }} transaksi</div>
-                                </div>
+                            <div>
+                                <div class="font-bold text-slate-900 text-xs sm:text-sm">{{ $cr->user_name }}</div>
+                                <div class="text-[11px] text-slate-400 font-medium">@ {{ $cr->username }} • {{ $cr->tx_count }} transaksi</div>
                             </div>
                             <div class="text-right">
                                 <div class="font-black text-slate-900 text-xs sm:text-sm">Rp{{ number_format($cr->total_revenue, 0, ',', '.') }}</div>

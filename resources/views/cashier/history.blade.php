@@ -8,9 +8,8 @@
                 <h1 class="font-black text-base sm:text-lg text-slate-900">Riwayat Transaksi Saya</h1>
                 <p class="text-xs text-slate-500 font-medium">Semua transaksi yang diproses menggunakan akun kasir ini.</p>
             </div>
-            <a href="{{ route('cashier.pos') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition duration-150 flex items-center gap-1.5 shrink-0">
-                <span>+</span>
-                <span>Input POS</span>
+            <a href="{{ route('cashier.pos') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition duration-150 shrink-0">
+                Input POS
             </a>
         </div>
 

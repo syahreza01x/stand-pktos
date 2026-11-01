@@ -34,70 +34,57 @@
                     <div class="font-black text-base tracking-tight text-slate-900">STAND PKTOS</div>
                     <div class="text-[11px] text-slate-500 font-medium">Sistem Penjualan Stand Acara</div>
                 </div>
-                <button @click="sidebarOpen = false" class="md:hidden w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold transition">
-                    ✕
+                <button @click="sidebarOpen = false" class="md:hidden px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+                    Tutup
                 </button>
             </div>
 
-            <!-- Navigation Links -->
+            <!-- Navigation Links (Pure Text, Simple & Minimalist) -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto text-xs font-semibold">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>📊</span>
-                    <span>Dashboard Utama</span>
+                <a href="{{ route('admin.dashboard') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Dashboard Utama
                 </a>
 
                 <div class="pt-3 pb-1 px-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Penjualan & Shift</div>
 
-                <a href="{{ route('admin.shifts.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.shifts.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>⏱</span>
-                    <span>Manajemen Shift</span>
+                <a href="{{ route('admin.shifts.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.shifts.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Manajemen Shift
                 </a>
 
-                <a href="{{ route('admin.transactions.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.transactions.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>🧾</span>
-                    <span>Riwayat Transaksi</span>
+                <a href="{{ route('admin.transactions.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.transactions.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Riwayat Transaksi
                 </a>
 
-                <a href="{{ route('cashier.pos') }}" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition font-bold shadow-xs">
-                    <span class="flex items-center gap-2">
-                        <span>🛒</span>
-                        <span>Buka Kasir POS</span>
-                    </span>
-                    <span class="text-xs">↗</span>
+                <a href="{{ route('cashier.pos') }}" target="_blank" class="block px-3.5 py-2.5 rounded-xl text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition font-bold shadow-xs">
+                    Buka Kasir POS
                 </a>
 
                 <div class="pt-3 pb-1 px-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Laporan</div>
 
-                <a href="{{ route('admin.reports.daily') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.reports.daily') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>📅</span>
-                    <span>Laporan Shift & Harian</span>
+                <a href="{{ route('admin.reports.daily') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.reports.daily') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Laporan Shift & Harian
                 </a>
 
-                <a href="{{ route('admin.reports.five-days') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.reports.five-days') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>📈</span>
-                    <span>Rekapitulasi 5 Hari</span>
+                <a href="{{ route('admin.reports.five-days') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.reports.five-days') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Rekapitulasi 5 Hari
                 </a>
 
                 <div class="pt-3 pb-1 px-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Data Master</div>
 
-                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.products.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>🏷</span>
-                    <span>Katalog & Harga</span>
+                <a href="{{ route('admin.products.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.products.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Katalog & Harga
                 </a>
 
-                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.users.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>👥</span>
-                    <span>Akun Petugas</span>
+                <a href="{{ route('admin.users.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.users.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Akun Petugas
                 </a>
 
-                <a href="{{ route('admin.event-days.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.event-days.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>🗓</span>
-                    <span>Jadwal Hari Acara</span>
+                <a href="{{ route('admin.event-days.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.event-days.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Jadwal Hari Acara
                 </a>
 
-                <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.activity-logs.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span>📋</span>
-                    <span>Log Aktivitas</span>
+                <a href="{{ route('admin.activity-logs.index') }}" class="block px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.activity-logs.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    Log Aktivitas
                 </a>
             </nav>
 
@@ -118,7 +105,7 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-            <!-- Topbar Header (Responsive, Roomy, Mobile-Friendly) -->
+            <!-- Topbar Header -->
             <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-6 py-3 shadow-xs">
                 @php
                     $openShift = \App\Models\Shift::with('eventDay')->where('status', 'open')->first();
@@ -127,19 +114,16 @@
                 <!-- Desktop / Tablet Header Layout -->
                 <div class="hidden sm:flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3 min-w-0">
-                        <button @click="sidebarOpen = true" class="md:hidden px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold flex items-center gap-1.5">
-                            <span>☰</span>
-                            <span>Menu</span>
+                        <button @click="sidebarOpen = true" class="md:hidden px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold">
+                            Menu
                         </button>
                         <h1 class="text-base font-extrabold text-slate-900 truncate">{{ $header ?? $title ?? 'Dashboard' }}</h1>
                     </div>
 
                     <div class="flex items-center gap-2.5 shrink-0">
                         @if ($openShift)
-                            <div class="text-xs px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>Shift Open:</span>
-                                <span>Hari {{ $openShift->eventDay->day_name }} — {{ $openShift->shift_number }}</span>
+                            <div class="text-xs px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+                                Shift Open: Hari {{ $openShift->eventDay->day_name }} — {{ $openShift->shift_number }}
                             </div>
                         @else
                             <div class="text-xs px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-medium">
@@ -147,19 +131,17 @@
                             </div>
                         @endif
 
-                        <a href="{{ route('cashier.pos') }}" target="_blank" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1">
-                            <span>Kasir POS</span>
-                            <span>↗</span>
+                        <a href="{{ route('cashier.pos') }}" target="_blank" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-xs">
+                            Kasir POS
                         </a>
                     </div>
                 </div>
 
-                <!-- Mobile Header Layout (Streamlined, Non-Cramped) -->
+                <!-- Mobile Header Layout -->
                 <div class="sm:hidden flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
-                        <button @click="sidebarOpen = true" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold flex items-center gap-1 shrink-0">
-                            <span>☰</span>
-                            <span>Menu</span>
+                        <button @click="sidebarOpen = true" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold shrink-0">
+                            Menu
                         </button>
                         <span class="font-extrabold text-xs text-slate-900 truncate">
                             {{ $header ?? $title ?? 'Dashboard' }}
@@ -168,14 +150,13 @@
 
                     <div class="flex items-center gap-1.5 shrink-0">
                         @if ($openShift)
-                            <div class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>{{ $openShift->shift_number }}</span>
+                            <div class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+                                {{ $openShift->shift_number }}
                             </div>
                         @endif
 
                         <a href="{{ route('cashier.pos') }}" target="_blank" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-[11px] font-bold transition shadow-xs">
-                            POS ↗
+                            POS
                         </a>
                     </div>
                 </div>

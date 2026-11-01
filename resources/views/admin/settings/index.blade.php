@@ -14,7 +14,7 @@
                 <form action="{{ route('admin.settings.clear-cache') }}" method="POST">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-xl border border-indigo-200 transition cursor-pointer">
-                        🧹 Bersihkan Cache Aplikasi
+                        Bersihkan Cache Aplikasi
                     </button>
                 </form>
             </div>
@@ -43,8 +43,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
                 <!-- Windows Laragon -->
                 <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                        <span>🪟</span> Lingkungan A: Windows + Laragon
+                    <div class="font-bold text-slate-900 text-sm">
+                        Lingkungan A: Windows + Laragon
                     </div>
                     <p class="text-slate-600 leading-relaxed">
                         Jalankan Laragon (Apache & MySQL). Tempatkan folder proyek di <code class="bg-white px-1 py-0.5 rounded border">C:\laragon\www\Stand-PKTOS</code> atau jalankan langsung dengan <code class="bg-white px-1 py-0.5 rounded border">php artisan serve --host=0.0.0.0 --port=8000</code>.
@@ -56,8 +56,8 @@
 
                 <!-- Linux VPS -->
                 <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                        <span>🐧</span> Lingkungan B: Linux VPS (Ubuntu / Debian)
+                    <div class="font-bold text-slate-900 text-sm">
+                        Lingkungan B: Linux VPS (Ubuntu / Debian)
                     </div>
                     <p class="text-slate-600 leading-relaxed">
                         Arahkan Document Root Nginx/Apache ke folder <code class="bg-white px-1 py-0.5 rounded border">/public</code>. Pastikan permission folder <code class="bg-white px-1 py-0.5 rounded border">storage/</code> dan <code class="bg-white px-1 py-0.5 rounded border">bootstrap/cache/</code> adalah 775 atau dapat ditulis oleh www-data.
@@ -72,8 +72,8 @@
 
                 <!-- Shared Hosting -->
                 <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                        <span>🌐</span> Lingkungan C: Shared Hosting (cPanel)
+                    <div class="font-bold text-slate-900 text-sm">
+                        Lingkungan C: Shared Hosting (cPanel)
                     </div>
                     <p class="text-slate-600 leading-relaxed">
                         Pastikan versi PHP minimal 8.2+ dengan ekstensi <code class="bg-white px-1 py-0.5 rounded border">pdo_mysql</code>, <code class="bg-white px-1 py-0.5 rounded border">bcmath</code>, dan <code class="bg-white px-1 py-0.5 rounded border">mbstring</code>. Pisahkan isi folder <code class="bg-white px-1 py-0.5 rounded border">public/</code> ke <code class="bg-white px-1 py-0.5 rounded border">public_html/</code> dan sesuaikan path <code class="bg-white px-1 py-0.5 rounded border">index.php</code>.
@@ -82,8 +82,8 @@
 
                 <!-- Server Pinjaman -->
                 <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                        <span>💻</span> Lingkungan D: Laptop Pinjaman (Darurat)
+                    <div class="font-bold text-slate-900 text-sm">
+                        Lingkungan D: Laptop Pinjaman (Darurat)
                     </div>
                     <p class="text-slate-600 leading-relaxed">
                         Jika laptop utama bermasalah di hari acara:
@@ -99,4 +99,3 @@
         </div>
     </div>
 </x-layouts.app>
-

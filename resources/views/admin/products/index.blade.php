@@ -39,11 +39,8 @@
     }">
         <!-- Info Banner -->
         <div class="rounded-2xl bg-blue-50/80 border border-blue-200/80 p-4 sm:p-5 text-blue-950 shadow-xs">
-            <div class="flex items-start gap-3">
-                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0 mt-0.5">ℹ</span>
-                <div class="text-xs sm:text-sm leading-relaxed">
-                    <strong class="font-bold text-blue-900">Catatan Integritas Harga:</strong> Penyesuaian harga di menu ini hanya berlaku untuk transaksi baru. Transaksi lampau tetap memakai snapshot harga saat transaksi dibuat sehingga pembukuan historis tidak berubah.
-                </div>
+            <div class="text-xs sm:text-sm leading-relaxed">
+                <strong class="font-bold text-blue-900">Catatan Integritas Harga:</strong> Penyesuaian harga di menu ini hanya berlaku untuk transaksi baru. Transaksi lampau tetap memakai snapshot harga saat transaksi dibuat sehingga pembukuan historis tidak berubah.
             </div>
         </div>
 
@@ -62,10 +59,9 @@
             <button 
                 type="button" 
                 @click="openCreateModal()"
-                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition duration-150 cursor-pointer flex items-center justify-center gap-1.5"
+                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition duration-150 cursor-pointer"
             >
-                <span>+</span>
-                <span>Tambah Produk</span>
+                Tambah Produk
             </button>
         </div>
 
@@ -202,7 +198,7 @@
             <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl space-y-4" @click.outside="showModal = false">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                     <h3 class="font-extrabold text-base text-slate-900" x-text="modalMode === 'create' ? 'Tambah Produk' : 'Edit Produk & Harga'"></h3>
-                    <button @click="showModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold transition">✕</button>
+                    <button @click="showModal = false" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">Tutup</button>
                 </div>
 
                 <form :action="formAction" method="POST" class="space-y-4">
