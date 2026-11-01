@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -94,5 +95,29 @@ class AuthTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect('/login');
+    }
+
+    public function test_seeded_cashier_can_login_with_username_plus_2026_password(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $teamMembers = ['farhad', 'natasya', 'naila', 'gita', 'azzilfa', 'rani', 'gustian', 'alya'];
+
+        foreach ($teamMembers as $username) {
+            $user = User::where('username', $username)->firstOrFail();
+            $password = $username.'2026';
+
+            $response = $this->post('/login', [
+                'login' => $username,
+                'password' => $password,
+            ]);
+
+            $this->assertAuthenticatedAs($user);
+            $response->assertRedirect(route('cashier.pos'));
+
+            // Logout to test next
+            $this->post('/logout');
+            $this->assertGuest();
+        }
     }
 }

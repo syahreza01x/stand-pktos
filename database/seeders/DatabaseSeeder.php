@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'name' => $tm['name'],
                     'email' => $tm['email'],
-                    'password' => Hash::make('kasir123'),
+                    'password' => Hash::make($tm['username'].'2026'),
                     'role' => 'cashier',
                     'is_active' => true,
                 ]
