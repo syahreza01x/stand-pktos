@@ -71,7 +71,7 @@ class ShopeePayMerchantService
                 $firstItem = $data['data']['list'][0] ?? null;
                 $storeName = $firstItem['storeName'] ?? 'Stand GenBI';
                 $merchantId = $firstItem['merchantId'] ?? null;
-                $totalNetSales = (string) ($data['data']['totalNetSales'] ?? '0');
+                $totalNetSales = (string) $this->parseAmount($data['data']['totalNetSales'] ?? '0');
                 $totalCount = (int) ($data['data']['totalCompletedCount'] ?? 0);
 
                 return [
@@ -165,14 +165,14 @@ class ShopeePayMerchantService
 
             $data = $response['data'] ?? [];
             $rawList = (array) ($data['list'] ?? []);
-            $totalSales = (float) ($data['totalNetSales'] ?? 0);
+            $totalSales = $this->parseAmount($data['totalNetSales'] ?? 0);
             $totalCompleted = (int) ($data['totalCompletedCount'] ?? count($rawList));
 
             $formattedList = [];
             $storeName = 'Stand GenBI';
 
             foreach ($rawList as $item) {
-                $amount = (float) ($item['amount'] ?? 0);
+                $amount = $this->parseAmount($item['amount'] ?? 0);
                 $createTime = (int) ($item['createTime'] ?? time());
                 $status = (int) ($item['status'] ?? 0);
                 $isSuccess = ($status === 3);
@@ -318,5 +318,36 @@ class ShopeePayMerchantService
             ->post($endpoint, $payload);
 
         return $response->json() ?? [];
+    }
+
+    /**
+     * Parse amount returned by ShopeePay API into float.
+     * ShopeePay Merchant API for Indonesia formats numbers using '.' as thousands separator (e.g. "5.000", "5.002", "150.000").
+     */
+    public function parseAmount(mixed $rawAmount): float
+    {
+        if (is_numeric($rawAmount) && ! is_string($rawAmount)) {
+            return (float) $rawAmount;
+        }
+
+        $str = trim((string) $rawAmount);
+        if ($str === '') {
+            return 0.0;
+        }
+
+        if (str_contains($str, ',')) {
+            $str = str_replace('.', '', $str);
+            $str = str_replace(',', '.', $str);
+
+            return (float) $str;
+        }
+
+        if (str_contains($str, '.')) {
+            $str = str_replace('.', '', $str);
+
+            return (float) $str;
+        }
+
+        return (float) $str;
     }
 }

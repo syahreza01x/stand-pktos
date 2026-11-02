@@ -6,6 +6,7 @@ use App\Models\EventDay;
 use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\User;
+use App\Services\ShopeePayMerchantService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -160,14 +161,14 @@ class ShopeePayQRISIntegrationTest extends TestCase
                     'list' => [
                         [
                             'transactionId' => 'TX_MATCH_123',
-                            'amount' => '15000',
+                            'amount' => '15.000', // Real ShopeePay format uses dot for thousands
                             'status' => 3,
                             'createTime' => time() - 30, // 30 seconds ago
                             'storeName' => 'Stand GenBI',
                         ],
                     ],
                     'total' => '1',
-                    'totalNetSales' => '15000',
+                    'totalNetSales' => '15.000',
                     'totalCompletedCount' => '1',
                 ],
                 'msg' => '',
@@ -192,6 +193,20 @@ class ShopeePayQRISIntegrationTest extends TestCase
 
         $responseNoMatch->assertOk();
         $responseNoMatch->assertJsonPath('matched', false);
+    }
+
+    public function test_parse_amount_handles_shopeepay_dot_thousands_separators(): void
+    {
+        $service = app(ShopeePayMerchantService::class);
+
+        $this->assertEquals(5000.0, $service->parseAmount('5.000'));
+        $this->assertEquals(1.0, $service->parseAmount('1'));
+        $this->assertEquals(5002.0, $service->parseAmount('5.002'));
+        $this->assertEquals(15000.0, $service->parseAmount('15.000'));
+        $this->assertEquals(15000.0, $service->parseAmount('15000'));
+        $this->assertEquals(15000.0, $service->parseAmount(15000));
+        $this->assertEquals(1500000.0, $service->parseAmount('1.500.000'));
+        $this->assertEquals(0.0, $service->parseAmount(''));
     }
 
     public function test_guest_cannot_access_qris_api(): void
