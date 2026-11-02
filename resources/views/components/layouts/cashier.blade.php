@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-50">
+<html lang="id" class="bg-slate-50">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -7,51 +7,31 @@
     <title>{{ $title ?? 'Kasir' }} — Stand-PKTOS</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full antialiased text-slate-800 flex flex-col pb-24 md:pb-8 selection:bg-indigo-500 selection:text-white">
-    <!-- Cashier Top Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 shadow-xs">
-        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <a href="{{ route('cashier.dashboard') }}" class="font-black text-sm sm:text-base tracking-tight text-slate-900 block truncate">
+<body class="min-h-screen bg-slate-50 antialiased text-slate-800 flex flex-col pb-36 sm:pb-28 md:pb-12 selection:bg-indigo-500 selection:text-white">
+    <!-- Cashier Top Header (Clean, Minimal, To The Point) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <a href="{{ route('cashier.dashboard') }}" class="font-black text-sm tracking-tight text-slate-900 shrink-0">
                     STAND PKTOS
                 </a>
-                <div class="text-xs text-slate-500 truncate font-medium">
-                    Petugas: <strong class="text-slate-800">{{ auth()->user()->name }}</strong>
-                </div>
+                <span class="text-slate-300 text-xs">|</span>
+                <span class="text-xs text-slate-600 font-semibold truncate max-w-[150px] sm:max-w-none">
+                    {{ auth()->user()->name }}
+                </span>
             </div>
 
-            <!-- Shift Status & Actions -->
-            <div class="flex items-center gap-2 shrink-0">
-                @php
-                    $myActiveShift = \App\Models\Shift::with('eventDay')
-                        ->where('status', 'open')
-                        ->where(function($q) {
-                            if (!auth()->user()->isAdmin()) {
-                                $q->whereHas('cashiers', fn($sub) => $sub->where('users.id', auth()->id()));
-                            }
-                        })
-                        ->first();
-                @endphp
-
-                @if ($myActiveShift)
-                    <div class="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs">
-                        <span class="truncate max-w-[130px] sm:max-w-none">{{ $myActiveShift->eventDay->day_name }} — {{ $myActiveShift->shift_number }}</span>
-                    </div>
-                @else
-                    <div class="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-medium">
-                        Shift Tutup
-                    </div>
-                @endif
-
+            <!-- Header Actions -->
+            <div class="flex items-center gap-1.5 shrink-0">
                 @if (auth()->user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="text-xs text-indigo-700 hover:text-indigo-900 font-bold px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition shadow-xs">
+                    <a href="{{ route('admin.dashboard') }}" class="text-[11px] text-indigo-700 hover:text-indigo-900 font-bold px-2 py-1 bg-indigo-50 border border-indigo-200 rounded-lg transition shadow-2xs">
                         Admin
                     </a>
                 @endif
 
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition font-bold cursor-pointer">
+                    <button type="submit" class="px-2 py-1 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition font-bold cursor-pointer">
                         Keluar
                     </button>
                 </form>
@@ -74,6 +54,9 @@
         @endif
 
         {{ $slot }}
+
+        <!-- Bottom Spacer for Mobile (Ensures content is never blocked by bottom nav) -->
+        <div class="h-14 sm:h-16 md:hidden"></div>
     </main>
 
     <!-- Mobile Bottom Navigation Bar (Pure Text, Simple & Minimalist) -->

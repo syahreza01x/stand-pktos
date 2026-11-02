@@ -193,5 +193,8 @@
                 {{ $transactions->links() }}
             </div>
         </div>
+
+        <!-- Extra Mobile Bottom Spacer -->
+        <div class="h-16 md:hidden"></div>
     </div>
 </x-layouts.cashier>

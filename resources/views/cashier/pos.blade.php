@@ -270,33 +270,34 @@
         }"
         class="space-y-4"
     >
-        <!-- Shift Aktif Info Bar with Live Cash Reconciliation -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-3.5">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Shift Berjalan:</span>
-                    <div class="font-bold text-slate-900 text-sm sm:text-base mt-0.5">
-                        Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }}
+        <!-- Shift Aktif Info Bar (Compact & To The Point on Mobile) -->
+        <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <div class="min-w-0">
+                        <span class="font-black text-xs sm:text-sm text-slate-900 truncate block">
+                            Hari {{ $activeShift->eventDay->day_name }} — {{ $activeShift->shift_number }}
+                        </span>
                     </div>
-                    <div class="text-xs text-slate-500">{{ $activeShift->name }}</div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                        OPEN
+                    </span>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 shrink-0">
                     <button 
                         type="button" 
                         @click="showShiftSummaryModal = true"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition cursor-pointer"
+                        class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition cursor-pointer"
                     >
                         Rekap Kas Shift
                     </button>
-                    <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Shift Open
-                    </span>
                 </div>
             </div>
 
-            <!-- Mini Live Reconciliation Bar -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100">
+            <!-- Mini Live Reconciliation Bar (Hidden on Mobile to save space, visible on tablet/desktop) -->
+            <div class="hidden sm:grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100">
                 <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-2.5">
                     <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wide block">Tunai (Stand)</span>
                     <span class="text-xs sm:text-sm font-black text-emerald-900" x-text="formatRupiah(shiftSummary?.cash?.total || 0)"></span>
@@ -323,13 +324,10 @@
             </div>
         </div>
 
-        <!-- Section Header -->
+        <!-- Section Header (Clean & Minimal) -->
         <div class="flex items-center justify-between px-1">
-            <div>
-                <h2 class="font-bold text-sm sm:text-base text-slate-900">Pilih Barang:</h2>
-                <p class="text-xs text-slate-500">Pilih menu, varian rasa, dan harga kustom pesanan pembeli</p>
-            </div>
-            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+            <h2 class="font-bold text-xs sm:text-sm text-slate-700 uppercase tracking-wider">Pilih Barang:</h2>
+            <span class="text-[11px] font-bold text-slate-500">
                 3 Menu Pilihan
             </span>
         </div>
@@ -495,6 +493,8 @@
                     </div>
                 </div>
 
+                <!-- Extra Mobile Bottom Spacer so Mojito card & buttons are completely clear of bottom bars -->
+                <div class="h-20 md:hidden"></div>
             </div>
 
             <!-- Desktop Sticky Cart (Visible on lg: screens) -->
