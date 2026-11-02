@@ -15,6 +15,19 @@
             this.showVoidModal = true;
         }
     }">
+        <!-- Header Action Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1">
+            <div>
+                <h2 class="font-black text-sm sm:text-base text-slate-900">Daftar Transaksi Stand</h2>
+                <p class="text-xs text-slate-500">Kelola dan pantau seluruh transaksi masuk</p>
+            </div>
+            <div>
+                <a href="{{ route('admin.settings.index') }}" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition shadow-xs">
+                    Reset Transaksi Uji Coba
+                </a>
+            </div>
+        </div>
+
         <!-- Roomy Filters Toolbar -->
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5">
             <form method="GET" action="{{ route('admin.transactions.index') }}" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">

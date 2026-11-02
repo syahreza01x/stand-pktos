@@ -83,6 +83,7 @@ Route::prefix('admin')
         // System Settings
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings/clear-cache', [SettingController::class, 'clearCache'])->name('settings.clear-cache');
+        Route::post('/settings/reset-transactions', [SettingController::class, 'resetTransactions'])->name('settings.reset-transactions');
 
         // ShopeePay QRIS Merchant Settings
         Route::get('/settings/qris', [ShopeePaySettingController::class, 'index'])->name('settings.qris');
