@@ -336,7 +336,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             
             <!-- Menu Cards (Left side on Desktop, Full on Mobile) -->
-            <div class="lg:col-span-7 xl:col-span-8 space-y-3.5">
+            <div :class="totalItemsCount > 0 ? 'pb-16' : ''" class="lg:col-span-7 xl:col-span-8 space-y-3.5">
 
                 <!-- CARD 1: QTELLA -->
                 <div 
@@ -492,9 +492,6 @@
                         </template>
                     </div>
                 </div>
-
-                <!-- Extra Mobile Bottom Spacer so Mojito card & buttons are completely clear of bottom bars -->
-                <div class="h-20 md:hidden"></div>
             </div>
 
             <!-- Desktop Sticky Cart (Visible on lg: screens) -->

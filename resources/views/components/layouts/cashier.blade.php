@@ -7,7 +7,7 @@
     <title>{{ $title ?? 'Kasir' }} — Stand-PKTOS</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 antialiased text-slate-800 flex flex-col pb-36 sm:pb-28 md:pb-12 selection:bg-indigo-500 selection:text-white">
+<body class="min-h-screen bg-slate-50 antialiased text-slate-800 flex flex-col pb-20 md:pb-8 selection:bg-indigo-500 selection:text-white">
     <!-- Cashier Top Header (Clean, Minimal, To The Point) -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs">
         <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
@@ -54,9 +54,6 @@
         @endif
 
         {{ $slot }}
-
-        <!-- Bottom Spacer for Mobile (Ensures content is never blocked by bottom nav) -->
-        <div class="h-14 sm:h-16 md:hidden"></div>
     </main>
 
     <!-- Mobile Bottom Navigation Bar (Pure Text, Simple & Minimalist) -->
