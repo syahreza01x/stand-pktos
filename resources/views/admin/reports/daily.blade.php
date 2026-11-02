@@ -40,6 +40,39 @@
                 </div>
             </div>
 
+            <!-- Rincian Metode Pembayaran Harian (Cash, QRIS, Transfer) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div class="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">1. Uang Tunai (Cash Stand)</span>
+                    <div class="text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['daily_total']['payments']['cash']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-emerald-700 font-medium block mt-0.5">
+                        {{ $dailyReport['daily_total']['payments']['cash']['count'] ?? 0 }} transaksi tunai
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-xl border border-sky-200 bg-sky-50/50">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-sky-800 block">2. QRIS Stand (ShopeePay)</span>
+                    <div class="text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['daily_total']['payments']['qris']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-sky-700 font-medium block mt-0.5">
+                        {{ $dailyReport['daily_total']['payments']['qris']['count'] ?? 0 }} transaksi QRIS
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-xl border border-purple-200 bg-purple-50/50">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-800 block">3. Transfer Bank (TF)</span>
+                    <div class="text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['daily_total']['payments']['transfer']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-purple-700 font-medium block mt-0.5">
+                        {{ $dailyReport['daily_total']['payments']['transfer']['count'] ?? 0 }} transaksi transfer
+                    </span>
+                </div>
+            </div>
+
             <!-- Tabs -->
             <div class="flex items-center gap-2 overflow-x-auto text-xs font-bold pb-1 sm:pb-0">
                 <button 
@@ -126,6 +159,37 @@
 
         <!-- 2. Shift 1 Detail -->
         <div x-show="activeTab === 'shift1'" class="space-y-4" style="display: none;">
+            <!-- Shift 1 Payment Breakdown -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white p-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">Tunai (Shift 1)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift1']['payments']['cash']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-emerald-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift1']['payments']['cash']['count'] ?? 0 }} transaksi tunai
+                    </span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-sky-200 bg-sky-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-sky-800 block">QRIS (Shift 1)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift1']['payments']['qris']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-sky-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift1']['payments']['qris']['count'] ?? 0 }} transaksi QRIS
+                    </span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-purple-200 bg-purple-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-800 block">Transfer (Shift 1)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift1']['payments']['transfer']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-purple-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift1']['payments']['transfer']['count'] ?? 0 }} transaksi transfer
+                    </span>
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
                 <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Rincian Shift 1 (Pagi)</h3>
@@ -172,6 +236,37 @@
 
         <!-- 3. Shift 2 Detail -->
         <div x-show="activeTab === 'shift2'" class="space-y-4" style="display: none;">
+            <!-- Shift 2 Payment Breakdown -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white p-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">Tunai (Shift 2)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift2']['payments']['cash']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-emerald-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift2']['payments']['cash']['count'] ?? 0 }} transaksi tunai
+                    </span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-sky-200 bg-sky-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-sky-800 block">QRIS (Shift 2)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift2']['payments']['qris']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-sky-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift2']['payments']['qris']['count'] ?? 0 }} transaksi QRIS
+                    </span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-purple-200 bg-purple-50/50 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-800 block">Transfer (Shift 2)</span>
+                    <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                        Rp{{ number_format($dailyReport['shift2']['payments']['transfer']['total'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <span class="text-[11px] text-purple-700 font-medium block mt-0.5">
+                        {{ $dailyReport['shift2']['payments']['transfer']['count'] ?? 0 }} transaksi transfer
+                    </span>
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
                 <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Rincian Shift 2 (Sore)</h3>

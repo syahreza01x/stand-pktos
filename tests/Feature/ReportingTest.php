@@ -132,24 +132,33 @@ class ReportingTest extends TestCase
         $this->assertEquals(40000, $s1Rep['total_revenue']);
         $this->assertEquals(5, $s1Rep['total_quantity']);
         $this->assertEquals(1, $s1Rep['transaction_count']);
+        $this->assertEquals(40000, $s1Rep['payments']['cash']['total']);
+        $this->assertEquals(0, $s1Rep['payments']['qris']['total']);
 
         // Test Shift 2 report
         $s2Rep = $this->reportingService->getShiftReport($this->shift2);
         $this->assertEquals(30000, $s2Rep['total_revenue']);
         $this->assertEquals(5, $s2Rep['total_quantity']);
         $this->assertEquals(1, $s2Rep['transaction_count']);
+        $this->assertEquals(0, $s2Rep['payments']['cash']['total']);
+        $this->assertEquals(30000, $s2Rep['payments']['qris']['total']);
 
         // Test Daily Combined Report (Shift 1 + Shift 2)
         $dailyRep = $this->reportingService->getDailyReport($this->day);
         $this->assertEquals(70000, $dailyRep['daily_total']['total_revenue']);
         $this->assertEquals(10, $dailyRep['daily_total']['total_quantity']);
         $this->assertEquals(2, $dailyRep['daily_total']['transaction_count']);
+        $this->assertEquals(40000, $dailyRep['daily_total']['payments']['cash']['total']);
+        $this->assertEquals(30000, $dailyRep['daily_total']['payments']['qris']['total']);
+        $this->assertEquals(0, $dailyRep['daily_total']['payments']['transfer']['total']);
 
         // Test 5-Day Overall Recap
         $recap = $this->reportingService->getFiveDayOverallRecap();
         $this->assertEquals(70000, $recap['total_revenue_5_days']);
         $this->assertEquals(10, $recap['total_units_5_days']);
         $this->assertEquals(2, $recap['total_transactions_5_days']);
+        $this->assertEquals(40000, $recap['payments_5_days']['cash']['total']);
+        $this->assertEquals(30000, $recap['payments_5_days']['qris']['total']);
 
         // Best seller should be Roti (6 units) followed by Boba (4 units)
         $topProduct = $recap['products_ranking']->first();
@@ -164,6 +173,13 @@ class ReportingTest extends TestCase
         $response = $this->get(route('admin.reports.export-daily', $this->day));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
+
+        ob_start();
+        $response->sendContent();
+        $content = ob_get_clean();
+        $this->assertStringContainsString('Uang Tunai (Cash Stand)', $content);
+        $this->assertStringContainsString('QRIS Stand (ShopeePay)', $content);
+        $this->assertStringContainsString('Transfer Bank (TF)', $content);
     }
 
     public function test_excel_export_five_days_returns_download_response(): void
@@ -173,5 +189,12 @@ class ReportingTest extends TestCase
         $response = $this->get(route('admin.reports.export-five-days'));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
+
+        ob_start();
+        $response->sendContent();
+        $content = ob_get_clean();
+        $this->assertStringContainsString('Uang Tunai (Cash Stand)', $content);
+        $this->assertStringContainsString('QRIS Stand (ShopeePay)', $content);
+        $this->assertStringContainsString('Rekapitulasi Metode Pembayaran 5 Hari', $content);
     }
 }

@@ -64,6 +64,39 @@
             </div>
         </div>
 
+        <!-- Rincian Metode Pembayaran 5 Hari (Cash, QRIS, Transfer) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 shadow-xs">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">1. Uang Tunai (Cash Stand)</span>
+                <div class="text-lg sm:text-xl font-black text-slate-900 mt-1">
+                    Rp{{ number_format($recap['payments_5_days']['cash']['total'] ?? 0, 0, ',', '.') }}
+                </div>
+                <span class="text-xs text-emerald-700 font-medium block mt-1">
+                    {{ $recap['payments_5_days']['cash']['count'] ?? 0 }} transaksi • Uang fisik stand
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-sky-200 bg-sky-50/40 shadow-xs">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-sky-800 block">2. QRIS Stand (ShopeePay)</span>
+                <div class="text-lg sm:text-xl font-black text-slate-900 mt-1">
+                    Rp{{ number_format($recap['payments_5_days']['qris']['total'] ?? 0, 0, ',', '.') }}
+                </div>
+                <span class="text-xs text-sky-700 font-medium block mt-1">
+                    {{ $recap['payments_5_days']['qris']['count'] ?? 0 }} transaksi • QRIS ShopeePay
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-purple-200 bg-purple-50/40 shadow-xs">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-800 block">3. Transfer Bank (TF)</span>
+                <div class="text-lg sm:text-xl font-black text-slate-900 mt-1">
+                    Rp{{ number_format($recap['payments_5_days']['transfer']['total'] ?? 0, 0, ',', '.') }}
+                </div>
+                <span class="text-xs text-purple-700 font-medium block mt-1">
+                    {{ $recap['payments_5_days']['transfer']['count'] ?? 0 }} transaksi • Mutasi transfer
+                </span>
+            </div>
+        </div>
+
         <!-- 1. Daily Breakdown Table -->
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
@@ -76,9 +109,12 @@
                         <tr>
                             <th class="py-3 px-4">Hari Acara</th>
                             <th class="py-3 px-4">Tanggal</th>
+                            <th class="py-3 px-4 text-right">Tunai (Cash)</th>
+                            <th class="py-3 px-4 text-right">QRIS Stand</th>
+                            <th class="py-3 px-4 text-right">Transfer</th>
                             <th class="py-3 px-4 text-center">Transaksi</th>
                             <th class="py-3 px-4 text-center">Unit Terjual</th>
-                            <th class="py-3 px-4 text-right">Pendapatan</th>
+                            <th class="py-3 px-4 text-right">Total Omzet</th>
                             <th class="py-3 px-4 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -90,6 +126,15 @@
                                 </td>
                                 <td class="py-2.5 px-4 text-slate-500 font-mono">
                                     {{ $ds['day']->event_date->format('d/m/Y') }}
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-medium text-emerald-800">
+                                    Rp{{ number_format($ds['payments']['cash']['total'] ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-medium text-sky-800">
+                                    Rp{{ number_format($ds['payments']['qris']['total'] ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-medium text-purple-800">
+                                    Rp{{ number_format($ds['payments']['transfer']['total'] ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="py-2.5 px-4 text-center text-slate-700 font-medium">
                                     {{ $ds['tx_count'] }}
@@ -114,6 +159,15 @@
                     <tfoot class="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-xs">
                         <tr>
                             <td colspan="2" class="py-3 px-4 uppercase text-[11px] text-slate-500">TOTAL 5 HARI:</td>
+                            <td class="py-3 px-4 text-right text-emerald-900 font-black">
+                                Rp{{ number_format($recap['payments_5_days']['cash']['total'] ?? 0, 0, ',', '.') }}
+                            </td>
+                            <td class="py-3 px-4 text-right text-sky-900 font-black">
+                                Rp{{ number_format($recap['payments_5_days']['qris']['total'] ?? 0, 0, ',', '.') }}
+                            </td>
+                            <td class="py-3 px-4 text-right text-purple-900 font-black">
+                                Rp{{ number_format($recap['payments_5_days']['transfer']['total'] ?? 0, 0, ',', '.') }}
+                            </td>
                             <td class="py-3 px-4 text-center text-slate-800 font-black">{{ $recap['total_transactions_5_days'] }} trx</td>
                             <td class="py-3 px-4 text-center text-slate-900 font-black">{{ $recap['total_units_5_days'] }} unit</td>
                             <td class="py-3 px-4 text-right font-black text-sm sm:text-base text-emerald-800">

@@ -66,12 +66,36 @@ class ReportingService
 
         $txCount = Transaction::where('shift_id', $shift->id)->where('status', '!=', 'voided')->count();
 
+        $paymentRows = Transaction::query()
+            ->where('shift_id', $shift->id)
+            ->where('status', '!=', 'voided')
+            ->select('payment_method', DB::raw('SUM(total_amount) as total'), DB::raw('COUNT(id) as count'))
+            ->groupBy('payment_method')
+            ->get()
+            ->keyBy('payment_method');
+
+        $shiftPayments = [
+            'cash' => [
+                'total' => (float) ($paymentRows->get('cash')?->total ?? 0),
+                'count' => (int) ($paymentRows->get('cash')?->count ?? 0),
+            ],
+            'qris' => [
+                'total' => (float) ($paymentRows->get('qris')?->total ?? 0),
+                'count' => (int) ($paymentRows->get('qris')?->count ?? 0),
+            ],
+            'transfer' => [
+                'total' => (float) ($paymentRows->get('transfer')?->total ?? 0),
+                'count' => (int) ($paymentRows->get('transfer')?->count ?? 0),
+            ],
+        ];
+
         return [
             'shift' => $shift,
             'items' => $items,
             'total_quantity' => $totalQuantity,
             'total_revenue' => $totalRevenue,
             'transaction_count' => $txCount,
+            'payments' => $shiftPayments,
         ];
     }
 
@@ -128,6 +152,29 @@ class ReportingService
 
         $dailyTxCount = Transaction::where('event_day_id', $day->id)->where('status', '!=', 'voided')->count();
 
+        $dailyPaymentRows = Transaction::query()
+            ->where('event_day_id', $day->id)
+            ->where('status', '!=', 'voided')
+            ->select('payment_method', DB::raw('SUM(total_amount) as total'), DB::raw('COUNT(id) as count'))
+            ->groupBy('payment_method')
+            ->get()
+            ->keyBy('payment_method');
+
+        $dailyPayments = [
+            'cash' => [
+                'total' => (float) ($dailyPaymentRows->get('cash')?->total ?? 0),
+                'count' => (int) ($dailyPaymentRows->get('cash')?->count ?? 0),
+            ],
+            'qris' => [
+                'total' => (float) ($dailyPaymentRows->get('qris')?->total ?? 0),
+                'count' => (int) ($dailyPaymentRows->get('qris')?->count ?? 0),
+            ],
+            'transfer' => [
+                'total' => (float) ($dailyPaymentRows->get('transfer')?->total ?? 0),
+                'count' => (int) ($dailyPaymentRows->get('transfer')?->count ?? 0),
+            ],
+        ];
+
         return [
             'day' => $day,
             'shift1' => $shift1Report,
@@ -137,6 +184,7 @@ class ReportingService
                 'total_quantity' => $dailyTotalQty,
                 'total_revenue' => $dailyTotalRevenue,
                 'transaction_count' => $dailyTxCount,
+                'payments' => $dailyPayments,
             ],
         ];
     }
@@ -174,12 +222,36 @@ class ReportingService
                 'revenue' => $revenue,
                 'units' => $units,
                 'tx_count' => $txCount,
+                'payments' => $report['daily_total']['payments'],
             ];
 
             $grandRevenue += $revenue;
             $grandUnits += $units;
             $grandTxCount += $txCount;
         }
+
+        // 5-day payment method breakdown
+        $fiveDayPaymentRows = Transaction::query()
+            ->where('status', '!=', 'voided')
+            ->select('payment_method', DB::raw('SUM(total_amount) as total'), DB::raw('COUNT(id) as count'))
+            ->groupBy('payment_method')
+            ->get()
+            ->keyBy('payment_method');
+
+        $fiveDayPayments = [
+            'cash' => [
+                'total' => (float) ($fiveDayPaymentRows->get('cash')?->total ?? 0),
+                'count' => (int) ($fiveDayPaymentRows->get('cash')?->count ?? 0),
+            ],
+            'qris' => [
+                'total' => (float) ($fiveDayPaymentRows->get('qris')?->total ?? 0),
+                'count' => (int) ($fiveDayPaymentRows->get('qris')?->count ?? 0),
+            ],
+            'transfer' => [
+                'total' => (float) ($fiveDayPaymentRows->get('transfer')?->total ?? 0),
+                'count' => (int) ($fiveDayPaymentRows->get('transfer')?->count ?? 0),
+            ],
+        ];
 
         // Product ranking (best-selling)
         $productStats = TransactionItem::query()
@@ -243,6 +315,7 @@ class ReportingService
                 'shift2_tx_count' => (int) ($s2Stats->tx_count ?? 0),
             ],
             'cashiers_recap' => $cashierStats,
+            'payments_5_days' => $fiveDayPayments,
         ];
     }
 }
