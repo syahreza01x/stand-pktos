@@ -109,15 +109,9 @@
                         </div>
                         <div class="text-xs text-slate-600 font-medium pt-1 border-t border-sky-100">
                             <strong>{{ $shiftSummary['qris']['count'] }}</strong> transaksi QRIS
-                            @if ($shopeePaySummary && ($shopeePaySummary['success'] ?? false))
-                                <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
-                                    Omset ShopeePay (Stand GenBI): <strong>{{ $shopeePaySummary['formatted_total_net_sales'] }}</strong>
-                                </span>
-                            @else
-                                <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
-                                    Cocokkan dengan notifikasi/riwayat aplikasi QRIS stand.
-                                </span>
-                            @endif
+                            <span class="block text-[11px] text-sky-800 font-semibold mt-0.5">
+                                Cocokkan dengan mutasi QRIS masuk selama shift Anda.
+                            </span>
                         </div>
                     </div>
 

@@ -1242,12 +1242,8 @@
                             </div>
                             <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-blue-200 text-blue-900" x-text="(shiftSummary?.qris?.count || 0) + ' Transaksi'"></span>
                         </div>
-                        <div class="mt-2.5 pt-2 border-t border-blue-200/60 flex items-center justify-between text-xs text-blue-900">
-                            <span>Total Omset QRIS ShopeePay:</span>
-                            <strong class="font-bold text-sm" x-text="qrisTotalNetSales"></strong>
-                        </div>
-                        <p class="text-xs text-blue-800 mt-1 font-medium">
-                            Tersinkronisasi langsung dengan Shopee Partner (Stand GenBI).
+                        <p class="text-xs text-blue-800 mt-2 font-medium">
+                            Cocokkan dengan mutasi QRIS masuk pada jam shift Anda.
                         </p>
                     </div>
 
