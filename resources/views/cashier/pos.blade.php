@@ -1,355 +1,7 @@
 <x-layouts.cashier>
     <x-slot:title>Input Penjualan (POS)</x-slot:title>
 
-    <div 
-        x-data="{
-            products: {{ Js::from($products) }},
-            shiftSummary: {{ Js::from($shiftSummary) }},
-            activeShiftId: {{ $activeShift->id }},
-            cart: {},
-            paymentMethod: 'cash',
-            notes: '',
-            isSubmitting: false,
-            showReceiptModal: false,
-            showShiftSummaryModal: false,
-            showMobileCheckout: false,
-            completedTx: null,
-            idempotencyKey: '',
-
-            // Modal states for grouped menu cards
-            showQtellaModal: false,
-            selectedQtellaFlavor: 'Balado',
-            qtellaPrice: 5000,
-            qtellaQty: 1,
-
-            showKoinModal: false,
-            selectedKoinFlavor: 'Balado',
-            koinPrice: 2000,
-            koinQty: 1,
-
-            showDrinkModal: false,
-            selectedDrinkFlavor: 'Cocopandan',
-            drinkPrice: 5000,
-            drinkQty: 1,
-
-            flavors: ['Balado', 'BBQ', 'Jagung Bakar', 'Extra Pedas'],
-            drinkFlavors: ['Cocopandan', 'Melon'],
-
-            // Live QRIS ShopeePay state
-            liveQrisList: [],
-            isCheckingQris: false,
-            qrisTotalNetSales: 'Rp0',
-            lastQrisCheckTime: '',
-            qrisMatched: false,
-            qrisMatchMessage: '',
-            verifiedQrisTxId: '',
-
-            init() {
-                this.generateIdempotencyKey();
-                this.fetchLiveQris(false);
-            },
-
-            async fetchLiveQris(force = true) {
-                this.isCheckingQris = true;
-                try {
-                    const res = await fetch('{{ route('cashier.qris.live-mutations') }}?refresh=' + (force ? '1' : '0'));
-                    const data = await res.json();
-                    if (data && data.success) {
-                        this.liveQrisList = data.transactions || [];
-                        this.qrisTotalNetSales = data.formatted_total_net_sales || 'Rp0';
-                        this.lastQrisCheckTime = data.fetched_at || '';
-                    }
-                } catch (e) {
-                    console.error('QRIS poll error', e);
-                } finally {
-                    this.isCheckingQris = false;
-                }
-            },
-
-            async verifyQrisPayment() {
-                if (this.totalAmount <= 0) {
-                    this.qrisMatched = false;
-                    this.qrisMatchMessage = 'Pilih pesanan terlebih dahulu sebelum cek QRIS.';
-                    return;
-                }
-
-                this.isCheckingQris = true;
-                this.qrisMatchMessage = 'Menghubungi ShopeePay Merchant...';
-
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-                    const res = await fetch('{{ route('cashier.qris.check-match') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            amount: this.totalAmount,
-                            tolerance_minutes: 2
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (data) {
-                        if (data.live_list && Array.isArray(data.live_list)) {
-                            this.liveQrisList = data.live_list;
-                        }
-                        this.qrisMatched = Boolean(data.matched);
-                        this.qrisMatchMessage = data.message || '';
-                        if (data.matched && data.transaction) {
-                            this.verifiedQrisTxId = data.transaction.transaction_id || '';
-                        } else {
-                            this.verifiedQrisTxId = '';
-                        }
-                    }
-                } catch (e) {
-                    console.error('QRIS verify error', e);
-                    this.qrisMatched = false;
-                    this.qrisMatchMessage = 'Gagal memeriksa mutasi ke ShopeePay. Periksa koneksi internet lalu coba lagi.';
-                } finally {
-                    this.isCheckingQris = false;
-                }
-            },
-
-            resetQrisVerification() {
-                this.qrisMatched = false;
-                this.qrisMatchMessage = '';
-                this.verifiedQrisTxId = '';
-            },
-
-            setPaymentMethod(method) {
-                this.paymentMethod = method;
-                this.resetQrisVerification();
-                if (method === 'qris') {
-                    this.fetchLiveQris(false);
-                }
-            },
-
-            generateIdempotencyKey() {
-                this.idempotencyKey = 'pos-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-            },
-
-            // Helpers for finding products from the DB list
-            getQtellaProduct(flavor) {
-                return this.products.find(p => p.name.toLowerCase().includes('qtella') && p.name.toLowerCase().includes(flavor.toLowerCase()));
-            },
-
-            getKoinProduct(flavor) {
-                return this.products.find(p => p.name.toLowerCase().includes('koin') && p.name.toLowerCase().includes(flavor.toLowerCase()));
-            },
-
-            getDrinkProduct(flavor) {
-                const f = flavor ? flavor.toLowerCase() : '';
-                return this.products.find(p => p.name.toLowerCase().includes('mojito') && p.name.toLowerCase().includes(f))
-                    || this.products.find(p => p.code === 'PRD-MOJITO' || p.name.toLowerCase().includes('mojito'));
-            },
-
-            getMojitoProduct() {
-                return this.getDrinkProduct(this.selectedDrinkFlavor);
-            },
-
-            // Modal openers
-            openQtellaModal() {
-                this.selectedQtellaFlavor = 'Balado';
-                this.qtellaPrice = 5000;
-                this.qtellaQty = 1;
-                this.showQtellaModal = true;
-            },
-
-            openKoinModal() {
-                this.selectedKoinFlavor = 'Balado';
-                this.koinPrice = 2000;
-                this.koinQty = 1;
-                this.showKoinModal = true;
-            },
-
-            openDrinkModal() {
-                this.selectedDrinkFlavor = 'Cocopandan';
-                this.drinkPrice = 5000;
-                this.drinkQty = 1;
-                this.showDrinkModal = true;
-            },
-
-            // Shortcut price setters
-            setQtellaPrice(price) {
-                this.qtellaPrice = price;
-            },
-
-            setKoinPrice(price) {
-                this.koinPrice = price;
-            },
-
-            setDrinkPrice(price) {
-                this.drinkPrice = price;
-            },
-
-            // Add Qtella with selected flavor & custom price
-            addQtellaToCart() {
-                const product = this.getQtellaProduct(this.selectedQtellaFlavor);
-                const price = Number(this.qtellaPrice) > 0 ? Number(this.qtellaPrice) : 5000;
-                if (product) {
-                    this.addToCartWithPriceAndQty(product, price, this.qtellaQty);
-                }
-                this.showQtellaModal = false;
-            },
-
-            // Add Kerupuk Koin with selected flavor & custom price
-            addKoinToCart() {
-                const product = this.getKoinProduct(this.selectedKoinFlavor);
-                const price = Number(this.koinPrice) > 0 ? Number(this.koinPrice) : 2000;
-                if (product) {
-                    this.addToCartWithPriceAndQty(product, price, this.koinQty);
-                }
-                this.showKoinModal = false;
-            },
-
-            // Add Mojito with selected flavor & custom price
-            addDrinkToCart() {
-                const product = this.getDrinkProduct(this.selectedDrinkFlavor);
-                const price = Number(this.drinkPrice) > 0 ? Number(this.drinkPrice) : 5000;
-                if (product) {
-                    this.addToCartWithPriceAndQty(product, price, this.drinkQty);
-                }
-                this.showDrinkModal = false;
-            },
-
-            // Cart operations keyed by product_id + price
-            addToCartWithPriceAndQty(product, price, qty = 1) {
-                const key = product.id + '_' + price;
-                if (!this.cart[key]) {
-                    this.cart[key] = {
-                        key: key,
-                        id: product.id,
-                        name: product.name,
-                        price: parseFloat(price),
-                        quantity: qty
-                    };
-                } else {
-                    this.cart[key].quantity += qty;
-                }
-                this.resetQrisVerification();
-            },
-
-            addToCart(product) {
-                this.addToCartWithPriceAndQty(product, parseFloat(product.price), 1);
-            },
-
-            decrementQuantity(key) {
-                if (this.cart[key]) {
-                    this.cart[key].quantity -= 1;
-                    if (this.cart[key].quantity <= 0) {
-                        delete this.cart[key];
-                    }
-                    this.resetQrisVerification();
-                }
-            },
-
-            incrementQuantity(key) {
-                if (this.cart[key]) {
-                    this.cart[key].quantity += 1;
-                    this.resetQrisVerification();
-                }
-            },
-
-            clearCart() {
-                this.cart = {};
-                this.notes = '';
-                this.resetQrisVerification();
-                this.showMobileCheckout = false;
-                this.generateIdempotencyKey();
-            },
-
-            get cartItems() {
-                return Object.values(this.cart);
-            },
-
-            get totalItemsCount() {
-                return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
-            },
-
-            get totalAmount() {
-                return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            },
-
-            // Group helpers for card badges
-            getGroupCartItems(type) {
-                if (type === 'qtella') {
-                    return this.cartItems.filter(item => item.name.toLowerCase().includes('qtella'));
-                }
-                if (type === 'koin') {
-                    return this.cartItems.filter(item => item.name.toLowerCase().includes('koin'));
-                }
-                if (type === 'mojito') {
-                    return this.cartItems.filter(item => item.name.toLowerCase().includes('mojito'));
-                }
-                return [];
-            },
-
-            getGroupCartCount(type) {
-                return this.getGroupCartItems(type).reduce((sum, item) => sum + item.quantity, 0);
-            },
-
-            formatRupiah(number) {
-                return 'Rp' + new Intl.NumberFormat('id-ID').format(number);
-            },
-
-            async submitTransaction() {
-                if (this.totalItemsCount === 0 || this.isSubmitting) return;
-
-                this.isSubmitting = true;
-
-                let orderNotes = this.notes ? this.notes.trim() : '';
-                if (this.paymentMethod === 'qris' && this.verifiedQrisTxId) {
-                    orderNotes = (orderNotes ? orderNotes + ' ' : '') + '[QRIS: ' + this.verifiedQrisTxId + ']';
-                }
-
-                const payload = {
-                    shift_id: this.activeShiftId,
-                    payment_method: this.paymentMethod,
-                    idempotency_key: this.idempotencyKey,
-                    notes: orderNotes,
-                    items: this.cartItems.map(item => ({
-                        product_id: item.id,
-                        custom_price: item.price,
-                        quantity: item.quantity
-                    }))
-                };
-
-                try {
-                    const response = await fetch('{{ route('cashier.pos.store') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok && result.success) {
-                        this.completedTx = result.data;
-                        if (result.data && result.data.shift_summary) {
-                            this.shiftSummary = result.data.shift_summary;
-                        }
-                        this.showMobileCheckout = false;
-                        this.showReceiptModal = true;
-                        this.clearCart();
-                    } else {
-                        alert(result.message || 'Gagal memproses transaksi.');
-                    }
-                } catch (error) {
-                    alert('Terjadi kesalahan: ' + error.message);
-                } finally {
-                    this.isSubmitting = false;
-                }
-            }
-        }"
-        class="space-y-4"
-    >
+    <div x-data="posApp()" class="space-y-4">
         <!-- Shift Aktif Info Bar (Compact & To The Point on Mobile) -->
         <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs space-y-3">
             <div class="flex items-center justify-between gap-2">
@@ -1577,4 +1229,355 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function posApp() {
+            return {
+            products: {{ Js::from($products) }},
+            shiftSummary: {{ Js::from($shiftSummary) }},
+            activeShiftId: {{ $activeShift->id }},
+            cart: {},
+            paymentMethod: 'cash',
+            notes: '',
+            isSubmitting: false,
+            showReceiptModal: false,
+            showShiftSummaryModal: false,
+            showMobileCheckout: false,
+            completedTx: null,
+            idempotencyKey: '',
+
+            // Modal states for grouped menu cards
+            showQtellaModal: false,
+            selectedQtellaFlavor: 'Balado',
+            qtellaPrice: 5000,
+            qtellaQty: 1,
+
+            showKoinModal: false,
+            selectedKoinFlavor: 'Balado',
+            koinPrice: 2000,
+            koinQty: 1,
+
+            showDrinkModal: false,
+            selectedDrinkFlavor: 'Cocopandan',
+            drinkPrice: 5000,
+            drinkQty: 1,
+
+            flavors: ['Balado', 'BBQ', 'Jagung Bakar', 'Extra Pedas'],
+            drinkFlavors: ['Cocopandan', 'Melon'],
+
+            // Live QRIS ShopeePay state
+            liveQrisList: [],
+            isCheckingQris: false,
+            qrisTotalNetSales: 'Rp0',
+            lastQrisCheckTime: '',
+            qrisMatched: false,
+            qrisMatchMessage: '',
+            verifiedQrisTxId: '',
+
+            init() {
+                this.generateIdempotencyKey();
+                this.fetchLiveQris(false);
+            },
+
+            async fetchLiveQris(force = true) {
+                this.isCheckingQris = true;
+                try {
+                    const res = await fetch('{{ route('cashier.qris.live-mutations') }}?refresh=' + (force ? '1' : '0'));
+                    const data = await res.json();
+                    if (data && data.success) {
+                        this.liveQrisList = data.transactions || [];
+                        this.qrisTotalNetSales = data.formatted_total_net_sales || 'Rp0';
+                        this.lastQrisCheckTime = data.fetched_at || '';
+                    }
+                } catch (e) {
+                    console.error('QRIS poll error', e);
+                } finally {
+                    this.isCheckingQris = false;
+                }
+            },
+
+            async verifyQrisPayment() {
+                if (this.totalAmount <= 0) {
+                    this.qrisMatched = false;
+                    this.qrisMatchMessage = 'Pilih pesanan terlebih dahulu sebelum cek QRIS.';
+                    return;
+                }
+
+                this.isCheckingQris = true;
+                this.qrisMatchMessage = 'Menghubungi ShopeePay Merchant...';
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                    const res = await fetch('{{ route('cashier.qris.check-match') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            amount: this.totalAmount,
+                            tolerance_minutes: 2
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data) {
+                        if (data.live_list && Array.isArray(data.live_list)) {
+                            this.liveQrisList = data.live_list;
+                        }
+                        this.qrisMatched = Boolean(data.matched);
+                        this.qrisMatchMessage = data.message || '';
+                        if (data.matched && data.transaction) {
+                            this.verifiedQrisTxId = data.transaction.transaction_id || '';
+                        } else {
+                            this.verifiedQrisTxId = '';
+                        }
+                    }
+                } catch (e) {
+                    console.error('QRIS verify error', e);
+                    this.qrisMatched = false;
+                    this.qrisMatchMessage = 'Gagal memeriksa mutasi ke ShopeePay. Periksa koneksi internet lalu coba lagi.';
+                } finally {
+                    this.isCheckingQris = false;
+                }
+            },
+
+            resetQrisVerification() {
+                this.qrisMatched = false;
+                this.qrisMatchMessage = '';
+                this.verifiedQrisTxId = '';
+            },
+
+            setPaymentMethod(method) {
+                this.paymentMethod = method;
+                this.resetQrisVerification();
+                if (method === 'qris') {
+                    this.fetchLiveQris(false);
+                }
+            },
+
+            generateIdempotencyKey() {
+                this.idempotencyKey = 'pos-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+            },
+
+            // Helpers for finding products from the DB list
+            getQtellaProduct(flavor) {
+                return this.products.find(p => p.name.toLowerCase().includes('qtella') && p.name.toLowerCase().includes(flavor.toLowerCase()));
+            },
+
+            getKoinProduct(flavor) {
+                return this.products.find(p => p.name.toLowerCase().includes('koin') && p.name.toLowerCase().includes(flavor.toLowerCase()));
+            },
+
+            getDrinkProduct(flavor) {
+                const f = flavor ? flavor.toLowerCase() : '';
+                return this.products.find(p => p.name.toLowerCase().includes('mojito') && p.name.toLowerCase().includes(f))
+                    || this.products.find(p => p.code === 'PRD-MOJITO' || p.name.toLowerCase().includes('mojito'));
+            },
+
+            getMojitoProduct() {
+                return this.getDrinkProduct(this.selectedDrinkFlavor);
+            },
+
+            // Modal openers
+            openQtellaModal() {
+                this.selectedQtellaFlavor = 'Balado';
+                this.qtellaPrice = 5000;
+                this.qtellaQty = 1;
+                this.showQtellaModal = true;
+            },
+
+            openKoinModal() {
+                this.selectedKoinFlavor = 'Balado';
+                this.koinPrice = 2000;
+                this.koinQty = 1;
+                this.showKoinModal = true;
+            },
+
+            openDrinkModal() {
+                this.selectedDrinkFlavor = 'Cocopandan';
+                this.drinkPrice = 5000;
+                this.drinkQty = 1;
+                this.showDrinkModal = true;
+            },
+
+            // Shortcut price setters
+            setQtellaPrice(price) {
+                this.qtellaPrice = price;
+            },
+
+            setKoinPrice(price) {
+                this.koinPrice = price;
+            },
+
+            setDrinkPrice(price) {
+                this.drinkPrice = price;
+            },
+
+            // Add Qtella with selected flavor & custom price
+            addQtellaToCart() {
+                const product = this.getQtellaProduct(this.selectedQtellaFlavor);
+                const price = Number(this.qtellaPrice) > 0 ? Number(this.qtellaPrice) : 5000;
+                if (product) {
+                    this.addToCartWithPriceAndQty(product, price, this.qtellaQty);
+                }
+                this.showQtellaModal = false;
+            },
+
+            // Add Kerupuk Koin with selected flavor & custom price
+            addKoinToCart() {
+                const product = this.getKoinProduct(this.selectedKoinFlavor);
+                const price = Number(this.koinPrice) > 0 ? Number(this.koinPrice) : 2000;
+                if (product) {
+                    this.addToCartWithPriceAndQty(product, price, this.koinQty);
+                }
+                this.showKoinModal = false;
+            },
+
+            // Add Mojito with selected flavor & custom price
+            addDrinkToCart() {
+                const product = this.getDrinkProduct(this.selectedDrinkFlavor);
+                const price = Number(this.drinkPrice) > 0 ? Number(this.drinkPrice) : 5000;
+                if (product) {
+                    this.addToCartWithPriceAndQty(product, price, this.drinkQty);
+                }
+                this.showDrinkModal = false;
+            },
+
+            // Cart operations keyed by product_id + price
+            addToCartWithPriceAndQty(product, price, qty = 1) {
+                const key = product.id + '_' + price;
+                if (!this.cart[key]) {
+                    this.cart[key] = {
+                        key: key,
+                        id: product.id,
+                        name: product.name,
+                        price: parseFloat(price),
+                        quantity: qty
+                    };
+                } else {
+                    this.cart[key].quantity += qty;
+                }
+                this.resetQrisVerification();
+            },
+
+            addToCart(product) {
+                this.addToCartWithPriceAndQty(product, parseFloat(product.price), 1);
+            },
+
+            decrementQuantity(key) {
+                if (this.cart[key]) {
+                    this.cart[key].quantity -= 1;
+                    if (this.cart[key].quantity <= 0) {
+                        delete this.cart[key];
+                    }
+                    this.resetQrisVerification();
+                }
+            },
+
+            incrementQuantity(key) {
+                if (this.cart[key]) {
+                    this.cart[key].quantity += 1;
+                    this.resetQrisVerification();
+                }
+            },
+
+            clearCart() {
+                this.cart = {};
+                this.notes = '';
+                this.resetQrisVerification();
+                this.showMobileCheckout = false;
+                this.generateIdempotencyKey();
+            },
+
+            get cartItems() {
+                return Object.values(this.cart);
+            },
+
+            get totalItemsCount() {
+                return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            },
+
+            get totalAmount() {
+                return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            },
+
+            // Group helpers for card badges
+            getGroupCartItems(type) {
+                if (type === 'qtella') {
+                    return this.cartItems.filter(item => item.name.toLowerCase().includes('qtella'));
+                }
+                if (type === 'koin') {
+                    return this.cartItems.filter(item => item.name.toLowerCase().includes('koin'));
+                }
+                if (type === 'mojito') {
+                    return this.cartItems.filter(item => item.name.toLowerCase().includes('mojito'));
+                }
+                return [];
+            },
+
+            getGroupCartCount(type) {
+                return this.getGroupCartItems(type).reduce((sum, item) => sum + item.quantity, 0);
+            },
+
+            formatRupiah(number) {
+                return 'Rp' + new Intl.NumberFormat('id-ID').format(number);
+            },
+
+            async submitTransaction() {
+                if (this.totalItemsCount === 0 || this.isSubmitting) return;
+
+                this.isSubmitting = true;
+
+                let orderNotes = this.notes ? this.notes.trim() : '';
+                if (this.paymentMethod === 'qris' && this.verifiedQrisTxId) {
+                    orderNotes = (orderNotes ? orderNotes + ' ' : '') + '[QRIS: ' + this.verifiedQrisTxId + ']';
+                }
+
+                const payload = {
+                    shift_id: this.activeShiftId,
+                    payment_method: this.paymentMethod,
+                    idempotency_key: this.idempotencyKey,
+                    notes: orderNotes,
+                    items: this.cartItems.map(item => ({
+                        product_id: item.id,
+                        custom_price: item.price,
+                        quantity: item.quantity
+                    }))
+                };
+
+                try {
+                    const response = await fetch('{{ route('cashier.pos.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        this.completedTx = result.data;
+                        if (result.data && result.data.shift_summary) {
+                            this.shiftSummary = result.data.shift_summary;
+                        }
+                        this.showMobileCheckout = false;
+                        this.showReceiptModal = true;
+                        this.clearCart();
+                    } else {
+                        alert(result.message || 'Gagal memproses transaksi.');
+                    }
+                } catch (error) {
+                    alert('Terjadi kesalahan: ' + error.message);
+                } finally {
+                    this.isSubmitting = false;
+                }
+            }
+        };
+        }
+    </script>
 </x-layouts.cashier>
