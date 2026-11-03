@@ -216,7 +216,7 @@
                             class="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition duration-150 cursor-pointer text-center flex items-center justify-center gap-2"
                             :class="getGroupCartCount('mojito') > 0 ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-xs' : 'bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 hover:border-sky-600'"
                         >
-                            <span x-text="getGroupCartCount('mojito') > 0 ? '+ Tambah Rasa / Porsi Lain' : 'Pilih Rasa & Harga'"></span>
+                            <span x-text="getGroupCartCount('mojito') > 0 ? '+ Tambah Rasa / Cup Lain' : 'Pilih Rasa & Jumlah'"></span>
                         </button>
                     </div>
                 </div>
@@ -748,7 +748,7 @@
                             Minuman
                         </span>
                         <h3 class="font-black text-lg text-slate-900 mt-1">Mojito</h3>
-                        <p class="text-xs text-slate-500">Pilih rasa dan jumlah cup</p>
+                        <p class="text-xs text-slate-500">Pilih rasa dan jumlah cup (Rp5.000 / cup)</p>
                     </div>
                     <button 
                         type="button" 
@@ -780,61 +780,14 @@
                     </div>
                 </div>
 
-                <!-- Sub Menu 2: Harga Satuan -->
+                <!-- Sub Menu 2: Jumlah Cup -->
                 <div class="space-y-2 pt-1 border-t border-slate-100">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                            2. Harga Satuan (Rp)
+                            2. Jumlah Cup
                         </label>
-                        <span class="text-[11px] font-bold text-sky-600" x-text="formatRupiah(drinkPrice || 0) + ' / cup'"></span>
+                        <span class="text-[11px] font-bold text-sky-600">Rp5.000 / cup</span>
                     </div>
-
-                    <!-- Shortcut: 5k & 10k -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <button 
-                            type="button" 
-                            @click="setDrinkPrice(5000)"
-                            :class="drinkPrice === 5000 
-                                ? 'bg-sky-600 text-white font-bold border-sky-600 ring-2 ring-sky-200 shadow-xs' 
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
-                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
-                        >
-                            <span class="block text-xs font-black">Standar 5k</span>
-                            <span class="block text-[11px] opacity-80 font-medium">Rp5.000</span>
-                        </button>
-
-                        <button 
-                            type="button" 
-                            @click="setDrinkPrice(10000)"
-                            :class="drinkPrice === 10000 
-                                ? 'bg-sky-600 text-white font-bold border-sky-600 ring-2 ring-sky-200 shadow-xs' 
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
-                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
-                        >
-                            <span class="block text-xs font-black">Shortcut 10k</span>
-                            <span class="block text-[11px] opacity-80 font-medium">Rp10.000</span>
-                        </button>
-                    </div>
-
-                    <!-- Manual Input Field for Custom Price -->
-                    <div class="pt-1">
-                        <span class="block text-[11px] text-slate-500 font-medium mb-1">Atau input nominal kustom (Rp):</span>
-                        <input 
-                            type="number" 
-                            step="500" 
-                            min="500" 
-                            x-model.number="drinkPrice" 
-                            placeholder="5000"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                        >
-                    </div>
-                </div>
-
-                <!-- Sub Menu 3: Jumlah Cup -->
-                <div class="space-y-2 pt-1 border-t border-slate-100">
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        3. Jumlah Cup
-                    </label>
                     <div class="flex items-center justify-center gap-3">
                         <button 
                             type="button" 
@@ -861,16 +814,15 @@
                 <div class="pt-2 border-t border-slate-100 space-y-2.5">
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-slate-500 font-medium">
-                            <span x-text="'Mojito ' + selectedDrinkFlavor + ' (' + formatRupiah(drinkPrice || 0) + ')'"></span>
+                            <span x-text="'Mojito ' + selectedDrinkFlavor + ' (Rp5.000)'"></span>
                         </span>
-                        <span class="font-black text-sky-700 text-sm" x-text="formatRupiah((drinkPrice || 0) * drinkQty)"></span>
+                        <span class="font-black text-sky-700 text-sm" x-text="formatRupiah(5000 * drinkQty)"></span>
                     </div>
 
                     <button 
                         type="button" 
                         @click="addDrinkToCart()"
-                        :disabled="!drinkPrice || drinkPrice <= 0"
-                        class="w-full py-3 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
+                        class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
                     >
                         + Tambahkan ke Keranjang
                     </button>
@@ -1411,10 +1363,6 @@
                 this.koinPrice = price;
             },
 
-            setDrinkPrice(price) {
-                this.drinkPrice = price;
-            },
-
             // Add Qtella with selected flavor & custom price
             addQtellaToCart() {
                 const product = this.getQtellaProduct(this.selectedQtellaFlavor);
@@ -1435,10 +1383,10 @@
                 this.showKoinModal = false;
             },
 
-            // Add Mojito with selected flavor & custom price
+            // Add Mojito with selected flavor (Rp5.000 / cup)
             addDrinkToCart() {
                 const product = this.getDrinkProduct(this.selectedDrinkFlavor);
-                const price = Number(this.drinkPrice) > 0 ? Number(this.drinkPrice) : 5000;
+                const price = 5000;
                 if (product) {
                     this.addToCartWithPriceAndQty(product, price, this.drinkQty);
                 }
