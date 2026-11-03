@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -226,15 +227,16 @@ class ShopeePayMerchantService
     }
 
     /**
-     * Check if an incoming payment matching targetAmount exists within the tolerance minutes.
+     * Check if an incoming payment matching targetAmount exists within the tolerance minutes window.
      *
      * @return array{
      *     matched: bool,
      *     message: string,
-     *     transaction: array<string, mixed>|null
+     *     transaction: array<string, mixed>|null,
+     *     live_list: array<int, array<string, mixed>>
      * }
      */
-    public function checkRecentPayment(float $targetAmount, int $toleranceMinutes = 5): array
+    public function checkRecentPayment(float $targetAmount, int $toleranceMinutes = 2): array
     {
         $liveData = $this->fetchLiveTransactions(20, forceRefresh: true);
 
@@ -243,36 +245,57 @@ class ShopeePayMerchantService
                 'matched' => false,
                 'message' => $liveData['message'] ?? 'Gagal memeriksa mutasi ShopeePay.',
                 'transaction' => null,
+                'live_list' => [],
             ];
         }
 
-        $cutoffTime = now()->subMinutes($toleranceMinutes)->timestamp;
+        $now = now()->timestamp;
+        $minTime = $now - ($toleranceMinutes * 60);
+        $maxTime = $now + 120; // 2 minutes in the future to tolerate server clock drift
 
         foreach ($liveData['transactions'] as $tx) {
             // Must be successful
-            if (! $tx['is_success']) {
-                continue;
-            }
-
-            // Must be within tolerance window
-            if ($tx['created_at_timestamp'] < $cutoffTime) {
+            if (! ($tx['is_success'] ?? false)) {
                 continue;
             }
 
             // Must match target amount
-            if (abs($tx['amount'] - $targetAmount) < 0.01) {
-                return [
-                    'matched' => true,
-                    'message' => 'Pembayaran '.$tx['formatted_amount'].' terverifikasi masuk pada '.$tx['formatted_time'].'!',
-                    'transaction' => $tx,
-                ];
+            if (abs((float) $tx['amount'] - $targetAmount) > 0.01) {
+                continue;
             }
+
+            // Must be within tolerance window (-2m to +2m)
+            $txTime = (int) ($tx['created_at_timestamp'] ?? 0);
+            if ($txTime < $minTime || $txTime > $maxTime) {
+                continue;
+            }
+
+            // Must not have been already recorded by an earlier finalized order
+            $txId = (string) ($tx['transaction_id'] ?? '');
+            if ($txId !== '') {
+                $isAlreadyUsed = Transaction::where('payment_method', 'qris')
+                    ->where('status', '!=', 'voided')
+                    ->where('notes', 'like', "%[QRIS: {$txId}]%")
+                    ->exists();
+
+                if ($isAlreadyUsed) {
+                    continue;
+                }
+            }
+
+            return [
+                'matched' => true,
+                'message' => 'Pembayaran '.$tx['formatted_amount'].' terverifikasi masuk ('.$tx['formatted_time'].')',
+                'transaction' => $tx,
+                'live_list' => $liveData['transactions'] ?? [],
+            ];
         }
 
         return [
             'matched' => false,
-            'message' => 'Belum ada pembayaran Rp'.number_format($targetAmount, 0, ',', '.').' yang terdeteksi dalam '.$toleranceMinutes.' menit terakhir.',
+            'message' => 'Belum ada pembayaran Rp'.number_format($targetAmount, 0, ',', '.').' baru masuk (dicek '.$toleranceMinutes.' menit terakhir). Minta pembeli scan & klik Cek lagi.',
             'transaction' => null,
+            'live_list' => $liveData['transactions'] ?? [],
         ];
     }
 

@@ -27,7 +27,13 @@
             koinPrice: 2000,
             koinQty: 1,
 
+            showDrinkModal: false,
+            selectedDrinkFlavor: 'Cocopandan',
+            drinkPrice: 5000,
+            drinkQty: 1,
+
             flavors: ['Balado', 'BBQ', 'Jagung Bakar', 'Extra Pedas'],
+            drinkFlavors: ['Cocopandan', 'Melon'],
 
             // Live QRIS ShopeePay state
             liveQrisList: [],
@@ -36,6 +42,7 @@
             lastQrisCheckTime: '',
             qrisMatched: false,
             qrisMatchMessage: '',
+            verifiedQrisTxId: '',
 
             init() {
                 this.generateIdempotencyKey();
@@ -51,7 +58,6 @@
                         this.liveQrisList = data.transactions || [];
                         this.qrisTotalNetSales = data.formatted_total_net_sales || 'Rp0';
                         this.lastQrisCheckTime = data.fetched_at || '';
-                        this.checkQrisMatch();
                     }
                 } catch (e) {
                     console.error('QRIS poll error', e);
@@ -60,26 +66,64 @@
                 }
             },
 
-            checkQrisMatch() {
+            async verifyQrisPayment() {
                 if (this.totalAmount <= 0) {
                     this.qrisMatched = false;
-                    this.qrisMatchMessage = '';
+                    this.qrisMatchMessage = 'Pilih pesanan terlebih dahulu sebelum cek QRIS.';
                     return;
                 }
-                const found = this.liveQrisList.find(tx => tx.is_success && Math.abs(tx.amount - this.totalAmount) < 0.01);
-                if (found) {
-                    this.qrisMatched = true;
-                    this.qrisMatchMessage = 'Pembayaran ' + found.formatted_amount + ' terverifikasi masuk (' + found.formatted_time + ')';
-                } else {
+
+                this.isCheckingQris = true;
+                this.qrisMatchMessage = 'Menghubungi ShopeePay Merchant...';
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                    const res = await fetch('{{ route('cashier.qris.check-match') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            amount: this.totalAmount,
+                            tolerance_minutes: 2
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data) {
+                        if (data.live_list && Array.isArray(data.live_list)) {
+                            this.liveQrisList = data.live_list;
+                        }
+                        this.qrisMatched = Boolean(data.matched);
+                        this.qrisMatchMessage = data.message || '';
+                        if (data.matched && data.transaction) {
+                            this.verifiedQrisTxId = data.transaction.transaction_id || '';
+                        } else {
+                            this.verifiedQrisTxId = '';
+                        }
+                    }
+                } catch (e) {
+                    console.error('QRIS verify error', e);
                     this.qrisMatched = false;
-                    this.qrisMatchMessage = 'Belum ada pembayaran ' + this.formatRupiah(this.totalAmount) + ' baru. Minta pembeli scan & klik Cek.';
+                    this.qrisMatchMessage = 'Gagal memeriksa mutasi ke ShopeePay. Periksa koneksi internet lalu coba lagi.';
+                } finally {
+                    this.isCheckingQris = false;
                 }
+            },
+
+            resetQrisVerification() {
+                this.qrisMatched = false;
+                this.qrisMatchMessage = '';
+                this.verifiedQrisTxId = '';
             },
 
             setPaymentMethod(method) {
                 this.paymentMethod = method;
+                this.resetQrisVerification();
                 if (method === 'qris') {
-                    this.fetchLiveQris(true);
+                    this.fetchLiveQris(false);
                 }
             },
 
@@ -96,8 +140,14 @@
                 return this.products.find(p => p.name.toLowerCase().includes('koin') && p.name.toLowerCase().includes(flavor.toLowerCase()));
             },
 
+            getDrinkProduct(flavor) {
+                const f = flavor ? flavor.toLowerCase() : '';
+                return this.products.find(p => p.name.toLowerCase().includes('mojito') && p.name.toLowerCase().includes(f))
+                    || this.products.find(p => p.code === 'PRD-MOJITO' || p.name.toLowerCase().includes('mojito'));
+            },
+
             getMojitoProduct() {
-                return this.products.find(p => p.code === 'PRD-MOJITO' || p.name.toLowerCase().includes('mojito'));
+                return this.getDrinkProduct(this.selectedDrinkFlavor);
             },
 
             // Modal openers
@@ -115,6 +165,13 @@
                 this.showKoinModal = true;
             },
 
+            openDrinkModal() {
+                this.selectedDrinkFlavor = 'Cocopandan';
+                this.drinkPrice = 5000;
+                this.drinkQty = 1;
+                this.showDrinkModal = true;
+            },
+
             // Shortcut price setters
             setQtellaPrice(price) {
                 this.qtellaPrice = price;
@@ -122,6 +179,10 @@
 
             setKoinPrice(price) {
                 this.koinPrice = price;
+            },
+
+            setDrinkPrice(price) {
+                this.drinkPrice = price;
             },
 
             // Add Qtella with selected flavor & custom price
@@ -144,6 +205,16 @@
                 this.showKoinModal = false;
             },
 
+            // Add Mojito with selected flavor & custom price
+            addDrinkToCart() {
+                const product = this.getDrinkProduct(this.selectedDrinkFlavor);
+                const price = Number(this.drinkPrice) > 0 ? Number(this.drinkPrice) : 5000;
+                if (product) {
+                    this.addToCartWithPriceAndQty(product, price, this.drinkQty);
+                }
+                this.showDrinkModal = false;
+            },
+
             // Cart operations keyed by product_id + price
             addToCartWithPriceAndQty(product, price, qty = 1) {
                 const key = product.id + '_' + price;
@@ -158,6 +229,7 @@
                 } else {
                     this.cart[key].quantity += qty;
                 }
+                this.resetQrisVerification();
             },
 
             addToCart(product) {
@@ -170,18 +242,21 @@
                     if (this.cart[key].quantity <= 0) {
                         delete this.cart[key];
                     }
+                    this.resetQrisVerification();
                 }
             },
 
             incrementQuantity(key) {
                 if (this.cart[key]) {
                     this.cart[key].quantity += 1;
+                    this.resetQrisVerification();
                 }
             },
 
             clearCart() {
                 this.cart = {};
                 this.notes = '';
+                this.resetQrisVerification();
                 this.showMobileCheckout = false;
                 this.generateIdempotencyKey();
             },
@@ -225,11 +300,16 @@
 
                 this.isSubmitting = true;
 
+                let orderNotes = this.notes ? this.notes.trim() : '';
+                if (this.paymentMethod === 'qris' && this.verifiedQrisTxId) {
+                    orderNotes = (orderNotes ? orderNotes + ' ' : '') + '[QRIS: ' + this.verifiedQrisTxId + ']';
+                }
+
                 const payload = {
                     shift_id: this.activeShiftId,
                     payment_method: this.paymentMethod,
                     idempotency_key: this.idempotencyKey,
-                    notes: this.notes,
+                    notes: orderNotes,
                     items: this.cartItems.map(item => ({
                         product_id: item.id,
                         custom_price: item.price,
@@ -449,47 +529,43 @@
                                 Minuman
                             </span>
                             <h3 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">Mojito</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Minuman segar jeruk nipis dan daun mint dingin</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Varian rasa: Cocopandan, Melon</p>
                         </div>
                         <div class="text-right">
-                            <span class="font-black text-base sm:text-lg text-slate-900 block">Rp5.000</span>
+                            <span class="font-black text-sm sm:text-base text-slate-900 block">Rp5.000</span>
                             <span class="text-[11px] text-slate-400 font-medium">per cup</span>
                         </div>
                     </div>
 
-                    <!-- Direct Add or Stepper on Mojito Card -->
-                    <div>
-                        <template x-if="getGroupCartCount('mojito') === 0">
-                            <button 
-                                type="button" 
-                                @click="const m = getMojitoProduct(); if (m) addToCart(m);"
-                                class="w-full py-2.5 px-4 rounded-xl bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 hover:border-sky-600 font-bold text-xs sm:text-sm transition duration-150 cursor-pointer text-center"
-                            >
-                                Tambah Mojito
-                            </button>
-                        </template>
-
-                        <template x-if="getGroupCartCount('mojito') > 0">
-                            <div class="flex items-center justify-between gap-2 bg-sky-600 text-white rounded-xl p-1.5">
-                                <button 
-                                    type="button" 
-                                    @click="const it = getGroupCartItems('mojito')[0]; if (it) decrementQuantity(it.key);"
-                                    class="w-8 h-8 rounded-lg bg-sky-700 hover:bg-sky-800 active:scale-95 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer"
-                                >
-                                    -
-                                </button>
-                                <div class="text-center font-bold text-xs sm:text-sm text-white">
-                                    <span x-text="getGroupCartCount('mojito') + ' Mojito di keranjang'"></span>
-                                </div>
-                                <button 
-                                    type="button" 
-                                    @click="const m = getMojitoProduct(); if (m) addToCart(m);"
-                                    class="w-8 h-8 rounded-lg bg-sky-700 hover:bg-sky-800 active:scale-95 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer"
-                                >
-                                    +
-                                </button>
+                    <!-- Items in Cart Breakdown for Mojito -->
+                    <template x-if="getGroupCartCount('mojito') > 0">
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-slate-700">Sudah di keranjang:</span>
+                                <span class="font-black text-sky-700" x-text="getGroupCartCount('mojito') + ' cup'"></span>
                             </div>
-                        </template>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="item in getGroupCartItems('mojito')" :key="item.key">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-800 shadow-2xs">
+                                        <span x-text="item.name.replace('Mojito - ', '')"></span>
+                                        <span class="text-slate-500" x-text="'(' + formatRupiah(item.price) + ')'"></span>
+                                        <span class="font-black text-sky-700" x-text="'×' + item.quantity"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Card Action Button -->
+                    <div>
+                        <button 
+                            type="button" 
+                            @click="openDrinkModal()"
+                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition duration-150 cursor-pointer text-center flex items-center justify-center gap-2"
+                            :class="getGroupCartCount('mojito') > 0 ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-xs' : 'bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 hover:border-sky-600'"
+                        >
+                            <span x-text="getGroupCartCount('mojito') > 0 ? '+ Tambah Rasa / Porsi Lain' : 'Pilih Rasa & Harga'"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -589,7 +665,7 @@
                             </div>
                             <button 
                                 type="button" 
-                                @click="fetchLiveQris(true)"
+                                @click="verifyQrisPayment()"
                                 :disabled="isCheckingQris"
                                 class="px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-sky-100 disabled:opacity-50 text-sky-700 border border-sky-300 rounded-lg shadow-xs transition cursor-pointer"
                             >
@@ -995,6 +1071,161 @@
             </div>
         </div>
 
+        <!-- ======================================================== -->
+        <!-- MODAL MENU: MOJITO (Rasa: Cocopandan & Melon)            -->
+        <!-- ======================================================== -->
+        <div 
+            x-show="showDrinkModal"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            style="display: none;"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+        >
+            <div 
+                class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 border border-slate-200 shadow-2xl space-y-4"
+                @click.outside="showDrinkModal = false"
+            >
+                <!-- Header -->
+                <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">
+                            Minuman
+                        </span>
+                        <h3 class="font-black text-lg text-slate-900 mt-1">Mojito</h3>
+                        <p class="text-xs text-slate-500">Pilih rasa dan jumlah cup</p>
+                    </div>
+                    <button 
+                        type="button" 
+                        @click="showDrinkModal = false"
+                        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer"
+                    >
+                        Batal
+                    </button>
+                </div>
+
+                <!-- Sub Menu 1: Pilihan Rasa (Cocopandan & Melon) -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        1. Pilih Rasa Minuman
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="flavor in drinkFlavors" :key="flavor">
+                            <button 
+                                type="button" 
+                                @click="selectedDrinkFlavor = flavor"
+                                :class="selectedDrinkFlavor === flavor 
+                                    ? 'bg-sky-600 text-white font-bold border-sky-600 ring-2 ring-sky-200 shadow-xs' 
+                                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 font-semibold'"
+                                class="p-3 rounded-xl border text-xs sm:text-sm text-center transition cursor-pointer"
+                            >
+                                <span x-text="flavor"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Sub Menu 2: Harga Satuan -->
+                <div class="space-y-2 pt-1 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            2. Harga Satuan (Rp)
+                        </label>
+                        <span class="text-[11px] font-bold text-sky-600" x-text="formatRupiah(drinkPrice || 0) + ' / cup'"></span>
+                    </div>
+
+                    <!-- Shortcut: 5k & 10k -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button 
+                            type="button" 
+                            @click="setDrinkPrice(5000)"
+                            :class="drinkPrice === 5000 
+                                ? 'bg-sky-600 text-white font-bold border-sky-600 ring-2 ring-sky-200 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">Standar 5k</span>
+                            <span class="block text-[11px] opacity-80 font-medium">Rp5.000</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="setDrinkPrice(10000)"
+                            :class="drinkPrice === 10000 
+                                ? 'bg-sky-600 text-white font-bold border-sky-600 ring-2 ring-sky-200 shadow-xs' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 font-semibold'"
+                            class="py-2.5 px-3 rounded-xl border text-center transition cursor-pointer"
+                        >
+                            <span class="block text-xs font-black">Shortcut 10k</span>
+                            <span class="block text-[11px] opacity-80 font-medium">Rp10.000</span>
+                        </button>
+                    </div>
+
+                    <!-- Manual Input Field for Custom Price -->
+                    <div class="pt-1">
+                        <span class="block text-[11px] text-slate-500 font-medium mb-1">Atau input nominal kustom (Rp):</span>
+                        <input 
+                            type="number" 
+                            step="500" 
+                            min="500" 
+                            x-model.number="drinkPrice" 
+                            placeholder="5000"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        >
+                    </div>
+                </div>
+
+                <!-- Sub Menu 3: Jumlah Cup -->
+                <div class="space-y-2 pt-1 border-t border-slate-100">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        3. Jumlah Cup
+                    </label>
+                    <div class="flex items-center justify-center gap-3">
+                        <button 
+                            type="button" 
+                            @click="if (drinkQty > 1) drinkQty--"
+                            class="w-12 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >
+                            -
+                        </button>
+                        <div class="w-16 text-center">
+                            <span class="font-black text-xl text-slate-900" x-text="drinkQty"></span>
+                            <span class="block text-[10px] text-slate-400 font-medium">cup</span>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="drinkQty++"
+                            class="w-12 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Subtotal Preview & Submit -->
+                <div class="pt-2 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">
+                            <span x-text="'Mojito ' + selectedDrinkFlavor + ' (' + formatRupiah(drinkPrice || 0) + ')'"></span>
+                        </span>
+                        <span class="font-black text-sky-700 text-sm" x-text="formatRupiah((drinkPrice || 0) * drinkQty)"></span>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        @click="addDrinkToCart()"
+                        :disabled="!drinkPrice || drinkPrice <= 0"
+                        class="w-full py-3 bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-sm text-center"
+                    >
+                        + Tambahkan ke Keranjang
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- MOBILE FLOATING CHECKOUT BAR -->
         <div 
             x-show="totalItemsCount > 0"
@@ -1120,7 +1351,7 @@
                         </div>
                         <button 
                             type="button" 
-                            @click="fetchLiveQris(true)"
+                            @click="verifyQrisPayment()"
                             :disabled="isCheckingQris"
                             class="px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-sky-100 disabled:opacity-50 text-sky-700 border border-sky-300 rounded-lg shadow-xs transition cursor-pointer"
                         >

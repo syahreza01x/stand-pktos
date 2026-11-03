@@ -36,10 +36,12 @@ class QRISVerificationController extends Controller
                 'matched' => false,
                 'message' => 'Nominal transaksi tidak valid.',
                 'transaction' => null,
+                'live_list' => [],
             ], 422);
         }
 
-        $result = $this->shopeePayService->checkRecentPayment($amount, toleranceMinutes: 10);
+        $tolerance = (int) $request->input('tolerance_minutes', 2);
+        $result = $this->shopeePayService->checkRecentPayment($amount, toleranceMinutes: $tolerance > 0 ? $tolerance : 2);
 
         return response()->json($result);
     }

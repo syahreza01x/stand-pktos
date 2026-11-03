@@ -176,7 +176,7 @@ class AdminResetTransactionsTest extends TestCase
         $this->assertEquals(0, TransactionCorrection::count());
 
         // Master data remains intact
-        $this->assertEquals(1, Product::count());
+        $this->assertEquals(3, Product::count());
         $this->assertEquals(2, User::count());
         $this->assertEquals(1, Shift::count());
     }

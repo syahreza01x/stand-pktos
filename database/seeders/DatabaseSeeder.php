@@ -130,6 +130,20 @@ class DatabaseSeeder extends Seeder
                 'price' => 5000,
                 'sort_order' => 9,
             ],
+            [
+                'code' => 'PRD-MOJ-COP',
+                'name' => 'Mojito - Cocopandan',
+                'category' => 'Minuman',
+                'price' => 5000,
+                'sort_order' => 10,
+            ],
+            [
+                'code' => 'PRD-MOJ-MEL',
+                'name' => 'Mojito - Melon',
+                'category' => 'Minuman',
+                'price' => 5000,
+                'sort_order' => 11,
+            ],
         ];
 
         foreach ($menuItems as $item) {

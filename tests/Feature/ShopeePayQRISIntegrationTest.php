@@ -195,6 +195,40 @@ class ShopeePayQRISIntegrationTest extends TestCase
         $responseNoMatch->assertJsonPath('matched', false);
     }
 
+    public function test_qris_match_ignores_transactions_outside_2_minute_window(): void
+    {
+        Http::fake([
+            'https://shopeepay.shopee.co.id/*' => Http::response([
+                'code' => 0,
+                'data' => [
+                    'list' => [
+                        [
+                            'transactionId' => 'TX_OLD_5MIN',
+                            'amount' => '5.000',
+                            'status' => 3,
+                            'createTime' => time() - 300, // 5 minutes ago
+                            'storeName' => 'Stand GenBI',
+                        ],
+                    ],
+                    'total' => '1',
+                    'totalNetSales' => '5.000',
+                    'totalCompletedCount' => '1',
+                ],
+                'msg' => '',
+            ], 200),
+        ]);
+
+        $this->actingAs($this->cashier);
+
+        $response = $this->postJson(route('cashier.qris.check-match'), [
+            'amount' => 5000,
+            'tolerance_minutes' => 2,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('matched', false);
+    }
+
     public function test_parse_amount_handles_shopeepay_dot_thousands_separators(): void
     {
         $service = app(ShopeePayMerchantService::class);

@@ -106,7 +106,7 @@
         <div x-show="activeTab === 'total'" class="space-y-4">
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
                 <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
-                    <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Tabel Rekap Penjualan 6 Produk (Shift 1 + Shift 2)</h3>
+                    <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800">Tabel Rekap Penjualan Produk (Shift 1 + Shift 2)</h3>
                 </div>
 
                 <div class="overflow-x-auto">
